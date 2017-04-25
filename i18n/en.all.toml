@@ -1,0 +1,66 @@
+# translation file for govoice
+
+
+# ---- FROM and TO ----
+# variable for FROM and TO are
+# .Name
+# .Address
+# .AreaCode
+# .City
+# .Country
+# .Steuernummer
+# .VatNumber
+[from]
+other = "FROM"
+[sender]
+other = "{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"
+
+[to]
+other = "TO"
+[recipient]
+other = "{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"
+
+# ---- INVOICE ----
+
+# variables for INVOICE are:
+# .Number
+# .Date
+# .Due
+[invoice]
+other = "INVOICE"
+[invoice_data]
+other = "N. {{.Number}}\nDate: {{.Date}}\nDue:{{.Due}}"
+
+
+# ---- PAYMENT DETAILS ----
+
+# variables are
+# .AccountHolder
+# .Bank
+# .Iban
+# .Bic
+
+[payment_details]
+other = "PAYMENTS DETAILS"
+[payment_details_data]
+other = "{{.AccountHolder}}\n\nBank: {{.Bank}}\nIBAN: {{.Iban}}\nBIC: {{.Bic}}"
+
+# ---- Notes ----
+[notes]
+other = "NOTES"
+
+# ---- Table ----
+[desc]
+other = "Description"
+[quantity]
+other = "Quantity"
+[rate]
+other = "Rate"
+[cost]
+other = "Cost"
+[subtotal]
+other = "Subtotal"
+[total]
+other = "Total"
+[tax]
+other = "VAT"

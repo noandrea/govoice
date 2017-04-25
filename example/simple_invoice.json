@@ -1,0 +1,62 @@
+{
+	"from" : {
+		"name"   :"Josefiina Myllylä" ,
+		"address":"Metsanurga 92" ,
+		"city":"Kodavere",
+		"area_code":"49407",
+		"country":"Estonia",
+		"tax_id":"0000000000",
+		"vat_number":"EE000000000",
+		"email":"JosefiinaMyllyla@example.com"
+	},
+	"to" : {
+		"name"   :"Arsenije Djapić" ,
+		"address":"R São João 97" ,
+		"city":"Figueira dos Cavaleiros",
+		"area_code":"7900-251",
+		"country":"Portugal",
+		"tax_id":"111111111",
+		"vat_number":"PT111111111"
+	},
+	"payment_details" : {
+		"account_holder":"Josefiina Myllylä",
+		"account_bank":"HA Bank",
+		"account_iban":"NL42 SNSB0 8598 1050 6",
+		"account_bic":"XXXXXXXXX"
+	},
+	"invoice":{
+		"number":"000001",
+		"date":"20/04/2017",
+		"due":"20/05/2017"
+	},
+	"settings": {
+		"base_item_price": 50,
+		"vat_enabled": false,
+		"vat_country_code": "NL",
+		"currency_symbol": "€",
+		"quantity_symbol": ""
+	},
+	"dailytime": {
+		"enabled":false
+	},
+	"items":[
+		{
+			"description": "training",
+			"quantity": 21.5,
+			"item_price": 80
+		},
+		{
+			"description": "setup",
+			"quantity": 4.1,
+			"item_price": 20.4
+		},
+        {
+          "description": "design",
+          "quantity": 30
+        }
+	],
+	"notes":[
+		"according to the law xyz",
+		"the maintenance is for 1y"
+	]
+}
