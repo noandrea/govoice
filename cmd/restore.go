@@ -24,14 +24,10 @@ import (
 
 // restoreCmd represents the restore command
 var restoreCmd = &cobra.Command{
-	Use:   "restore",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "restore INVOICE_NUMBER",
+	Short: "restore a generated (and ecrypted) invoice descriptor to the master descriptor for editing",
+	Long: `this command should be used when it's necessary to edit an already rendered invoice
+the command will overwrite the master descriptor with the content of the invoice found`,
 	Run: restore,
 }
 
@@ -54,34 +50,23 @@ func init() {
 func restore(cmd *cobra.Command, args []string) {
 
 	if len(args) != 1 {
-		fmt.Println(cmd.Name(), "requires one argument")
+		fmt.Println(cmd.Name(), "requires parameter INVOICE_NUMBER")
 		cmd.Help()
 		return
 	}
 
 	var c gv.Config
-	var i gv.Invoice
-
-	invoiceName := args[0]
-
-	// parse configuration
 	viper.Unmarshal(&c)
 
-	// check if the invoice descriptor exists
-	descriptorPath, exists := c.GetInvoiceJsonPath(invoiceName)
-	if !exists {
-		fmt.Println("Invoice ", invoiceName, " not found in ", c.Workspace)
-		return
-	}
+	invoiceNumber := args[0]
+
 	// read user password for decrypt
 	password := gv.ReadUserPassword()
-	// parse de invoice
-	err := gv.ReadInvoiceDescriptorEncrypted(&descriptorPath, &i, &password)
+
+	err := gv.RestoreInvoice(&c, invoiceNumber, password)
 	if err != nil{
-		fmt.Println("invalid password, try again")
-		return
+		fmt.Println(err)
 	}
-	// dump it on master descriptor
-	masterDescriptorPath,_ := c.GetMasterPath()
-	gv.WriteJsonToFile(masterDescriptorPath, i)
+
+
 }

@@ -34,13 +34,6 @@ It offers:
 - multilanguage pdf generation
 - encrypted invoice descriptor generator (to be stored on a VCS)
 - indexing and search of invoices
-
-Example:
-govoive config
-govoice render [invoice-file-name]
-govoice index
-govoice search
-
 `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:

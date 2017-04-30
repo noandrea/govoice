@@ -15,25 +15,19 @@
 package cmd
 
 import (
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	gv "gitlab.com/almost_cc/govoice/invoice"
 	"fmt"
 
-	"github.com/spf13/cobra"
 )
 
 // indexCmd represents the index command
 var indexCmd = &cobra.Command{
 	Use:   "index",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Work your own magic here
-		fmt.Println("index called")
-	},
+	Short: "(re)generate the searchable index of invoices",
+	Long: ``,
+	Run: index,
 }
 
 func init() {
@@ -49,5 +43,23 @@ func init() {
 	// is called directly, e.g.:
 	// indexCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
+}
+
+func index(cmd *cobra.Command, args []string) {
+
+	var c gv.Config
+
+	// parse configuration
+	viper.Unmarshal(&c)
+
+	// retrieve password
+	password := gv.ReadUserPassword()
+	// create the index
+	count,err := gv.CreateSearchIndex(&c,&password)
+	// if index creation is
+	if err != nil{
+		fmt.Println(err)
+	}
+	fmt.Println("indexed created with",count,"invoices")
 }
 

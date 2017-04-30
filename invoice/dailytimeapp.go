@@ -1,14 +1,13 @@
-package ext
+package invoice
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 	"os/exec"
-	gv "gitlab.com/almost_cc/govoice/invoice"
 )
 
-func ScanItemsFromDaily(i *gv.Invoice) {
+func scanItemsFromDaily(i *Invoice) {
 	dailyExportCommand := fmt.Sprintf(`tell application "Daily" to print json with report "summary" from (date("%s")) to (date("%s"))`, i.Dailytime.DateFrom, i.Dailytime.DateTo)
 	//log.Println(dailyExportCommand)
 	cmd := exec.Command("/usr/bin/osascript", "-e", dailyExportCommand)
@@ -37,7 +36,7 @@ func ScanItemsFromDaily(i *gv.Invoice) {
 		//log.Println(di.Activity, " - ", seconds2hours(&di.Duration), " (", di.DurationString, ")")
 		for _, pr := range i.Dailytime.Projects {
 			if pr.Name == di.Activity {
-				i.PushItem(pr.ItemDescription, seconds2hours(&di.Duration))
+				i.PushItem(pr.ItemDescription, seconds2hours(&di.Duration), pr.ItemPrice)
 			}
 		}
 	}
