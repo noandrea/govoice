@@ -8,9 +8,7 @@ image: golang:latest
 # repository in /go/src/mydomainperso.com/repos/projectname 
 # Thus, making a symbolic link corrects this.
 before_script:
-    - mkdir /go/src/gitlab.com
-    - mkdir /go/src/gitlab.com/almost_cc
-    - ln -s /builds /go/src/gitlab.com/almost_cc/govoice
+    - ln -s /builds /go/src/gitlab.com
     - cd /go/src/gitlab.com/almost_cc/govoice
 
 stages:
