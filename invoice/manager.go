@@ -148,6 +148,8 @@ func RenderInvoice(c *Config, password string)(string,error)  {
 	// disable extensions in invoice
 	i.DisableExtensions()
 	writeInvoiceDescriptorEncrypted(&i, &jsonEncPath, &password)
+	// add invoice to the index
+	addToSearchIndex(c,&i)
 
 	fmt.Println("encrypted descriptor created at", jsonEncPath)
 	fmt.Println("pdf created at", pdfPath)

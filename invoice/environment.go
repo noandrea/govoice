@@ -195,5 +195,9 @@ func Setup(workspace string)(string,string) {
 		writeJsonToFile(masterPath, master)
 
 	}
+
+	// create bleve index
+	createSearchIndex(false)
+
 	return configPath,masterPath
 }

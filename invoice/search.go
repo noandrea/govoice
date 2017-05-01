@@ -27,35 +27,16 @@ const(
 //CreateIndex creates the bleve index
 func CreateSearchIndex(c *Config, password *string)(int,error){
 	var i Invoice
-	// open a new index
-	mapping := bleve.NewIndexMapping()
-
-	dm := bleve.NewDocumentMapping()
-	// text mapping for the invoce number
-	inm := bleve.NewTextFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_NUMBER,inm)
-	// text mapping for the customer name
-	cfm := bleve.NewTextFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_CUSTOMER,cfm)
-	// numeric mapping for the subtotal
-	afm := bleve.NewNumericFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_AMOUNT,afm)
-	// numeric mapping for the date
-	dfm := bleve.NewDateTimeFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_DATE,dfm)
-	// add document mapping
-	mapping.AddDocumentMapping("invoice", dm)
-
-	// index
-	indexPath, exists := GetSearchIndexFilePath()
-	// if the index exists delete it
-	if exists {
-		os.RemoveAll(indexPath)
-	}
-	// create a new index
-	index, err := bleve.New(indexPath, mapping)
+	// create a new search index
+	err := createSearchIndex(true)
 	if err != nil {
-		return -1, errors.New("cannot open or create the search index")
+		return -1, err
+	}
+	indexPath,_ := GetSearchIndexFilePath()
+	// create a new index
+	index, err := bleve.Open(indexPath)
+	if err != nil {
+		return -1, errors.New("cannot open the search index")
 
 	}
 	defer index.Close()
@@ -93,6 +74,37 @@ func CreateSearchIndex(c *Config, password *string)(int,error){
 	index.Batch(b)
 	// return the numer of entries indexed
 	return counter,nil
+}
+
+func addToSearchIndex(c *Config, i *Invoice)(error){
+	// index
+	indexPath, exists := GetSearchIndexFilePath()
+	if !exists {
+		return errors.New("index does not exists")
+	}
+
+	// open the index
+	index, err := bleve.Open(indexPath)
+	if err != nil {
+		return errors.New("cannot open the search index")
+	}
+	defer index.Close()
+
+	// create the index entry
+	amount, _ := i.GetTotals()
+	ie := InvoiceEntry{
+		i.Invoice.Number,
+		i.To.Name,
+		amount,
+		i.Invoice.Date,
+	}
+	// insert the entry in the index
+	if err := index.Index(i.Invoice.Number, ie); err !=nil{
+		return errors.New(fmt.Sprint("error inserting",i.Invoice.Number,"to the search index"))
+	}
+
+	return nil
+
 }
 
 
@@ -135,4 +147,48 @@ func SearchInvoice(queryString string)([]InvoiceEntry,uint64,time.Duration,error
 		entries = append(entries, ie)
 	}
 	return entries,results.Total,results.Took,nil
+}
+
+func createSearchIndex(deleteExisting bool)error{
+
+	// index
+	indexPath, exists := GetSearchIndexFilePath()
+
+	// if the index exists delete it
+	if deleteExisting{
+		os.RemoveAll(indexPath)
+	}
+	// if exists do nothing
+	if exists {
+		return nil
+	}
+
+
+	// open a new index
+	mapping := bleve.NewIndexMapping()
+
+	dm := bleve.NewDocumentMapping()
+	// text mapping for the invoce number
+	inm := bleve.NewTextFieldMapping()
+	dm.AddFieldMappingsAt(FIELD_NUMBER,inm)
+	// text mapping for the customer name
+	cfm := bleve.NewTextFieldMapping()
+	dm.AddFieldMappingsAt(FIELD_CUSTOMER,cfm)
+	// numeric mapping for the subtotal
+	afm := bleve.NewNumericFieldMapping()
+	dm.AddFieldMappingsAt(FIELD_AMOUNT,afm)
+	// numeric mapping for the date
+	dfm := bleve.NewDateTimeFieldMapping()
+	dm.AddFieldMappingsAt(FIELD_DATE,dfm)
+	// add document mapping
+	mapping.AddDocumentMapping("invoice", dm)
+
+	// create a new index
+	index, err := bleve.New(indexPath, mapping)
+	if err != nil {
+		return errors.New("cannot open or create the search index")
+	}
+	defer index.Close()
+	return nil
+
 }
