@@ -1,0 +1,61 @@
+{
+  "from": {
+    "name": "Mathis Hecht",
+    "address": "880 Whispering Half",
+    "city": "Hamburg",
+    "area_code": "67059",
+    "country": "Deutsheland",
+    "tax_id": "9999999",
+    "vat_number": "DE99999999999",
+    "email": "mh@ex.com"
+  },
+  "to": {
+    "name": "mercedes",
+    "address": "Calle Burch No. 139",
+    "city": "Valencia",
+    "area_code": "19490",
+    "country": "España",
+    "tax_id": "55555555",
+    "vat_number": "ES55555555",
+    "email": "etn@bs.com"
+  },
+  "payment_details": {
+    "account_holder": "Mathis Hecht",
+    "account_bank": "B Bank",
+    "account_iban": "DE 1111 1111 1111 1111 11",
+    "account_bic": "XXXXXXXX"
+  },
+  "invoice": {
+    "number": "0001",
+    "date": "01.01.2017",
+    "due": "01.02.2017"
+  },
+  "settings": {
+    "base_item_price": 45,
+    "vat_rate": 19,
+    "currency_symbol": "€",
+    "quantity_symbol": "",
+    "lang": "en"
+  },
+  "dailytime": {
+    "enabled": false,
+    "date_to": "",
+    "projects": null
+  },
+  "items": [
+    {
+      "description": "web dev",
+      "quantity": 10,
+      "item_price": 100
+    },
+    {
+      "description": "training",
+      "quantity": 5,
+      "item_price": 60
+    }
+  ],
+  "notes": [
+    "first note",
+    "second note"
+  ]
+}

@@ -42,7 +42,30 @@ func TestWorkspacePaths(t *testing.T) {
 	}
 
 	if fp := path.Join(workspaceBase, workspaceName, "0000.json.cfb"); filePath != fp {
-		t.Error("Expected\n", fp, "\nfound\n", filePath) 
+		t.Error("Expected\n", fp, "\nfound\n", filePath)
 	}
 }
 
+func TestSetup(t *testing.T) {
+	tmpDir := os.TempDir()
+	tmpHome := path.Join(tmpDir,"govoice")
+	tmpWorkspace :=path.Join(tmpDir, "workspace")
+
+	os.Setenv("HOME", tmpHome)
+	// check if config path and master path are set
+	configPath,masterPath := Setup(tmpWorkspace)
+
+	if p :=path.Join(tmpHome,".govoice","config.toml"); configPath != p {
+		t.Error("Expected",p,"found",configPath)
+		if _, err := os.Stat(p); os.IsNotExist(err) {
+			t.Error("file",p,"does not exists")
+		}
+	}
+
+	if p :=path.Join(tmpWorkspace,"_master.json"); masterPath != p {
+		t.Error("Expected",p,"found",masterPath)
+		if _, err := os.Stat(p); os.IsNotExist(err) {
+			t.Error("file",p,"does not exists")
+		}
+	}
+}
