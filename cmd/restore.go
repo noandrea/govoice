@@ -61,9 +61,13 @@ func restore(cmd *cobra.Command, args []string) {
 	invoiceNumber := args[0]
 
 	// read user password for decrypt
-	password := gv.ReadUserPassword()
+	password,err := gv.ReadUserPassword("Enter password:")
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
 
-	err := gv.RestoreInvoice(&c, invoiceNumber, password)
+	err = gv.RestoreInvoice(&c, invoiceNumber, password)
 	if err != nil{
 		fmt.Println(err)
 	}

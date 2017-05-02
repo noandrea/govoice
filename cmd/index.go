@@ -53,7 +53,10 @@ func index(cmd *cobra.Command, args []string) {
 	viper.Unmarshal(&c)
 
 	// retrieve password
-	password := gv.ReadUserPassword()
+	password,err := gv.ReadUserPassword("Enter password:")
+	if err != nil{
+		fmt.Println(err)
+	}
 	// create the index
 	count,err := gv.CreateSearchIndex(&c,&password)
 	// if index creation is

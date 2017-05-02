@@ -16,6 +16,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"syscall"
 	"bufio"
+	"errors"
 )
 
 const (
@@ -35,20 +36,19 @@ const (
 
 
 // ReadInvoice parse the json file for an invoice
-func readInvoiceDescriptor(path *string, i *Invoice) {
+func readInvoiceDescriptor(path *string, i *Invoice) (error){
 	rawJsonDescriptor, err := ioutil.ReadFile(*path)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		return err
 	}
 	json.Unmarshal(rawJsonDescriptor, &i)
+	return nil
 }
 
 func readInvoiceDescriptorEncrypted(path *string, i *Invoice, password *string)(error) {
 	rawJsonDescriptor, err := ioutil.ReadFile(*path)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		return err
 	}
 	rawJsonDescriptor = decryptCFB(*password, &rawJsonDescriptor)
 	return json.Unmarshal(rawJsonDescriptor, &i)
@@ -87,18 +87,17 @@ func writeJsonToFile(path string, v interface{}) {
 	ioutil.WriteFile(path, content, os.FileMode(0660))
 }
 
-func ReadUserPassword()(string){
+func ReadUserPassword(message string)(string,error){
 	// password
-	fmt.Print("Enter Password: ")
+	fmt.Print(message)
 	bytePassword,_ := terminal.ReadPassword(int(syscall.Stdin))
 	// pad the key for aes encryption
 	password := fmt.Sprintf("%32s",strings.TrimSpace(string(bytePassword)))
 	if len(password) > 32 {
-		println("password is too long (max 32 characters)")
-		os.Exit(1)
+		return "", errors.New("password is too long (max 32 characters)")
 	}
 	fmt.Println()
-	return password
+	return password, nil
 }
 
 func ReadUserInput(message string)(string){

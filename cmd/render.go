@@ -45,7 +45,11 @@ func render(cmd *cobra.Command, args []string) {
 	var c gv.Config
 	viper.Unmarshal(&c)
 	// read the password
-	password := gv.ReadUserPassword()
+	password, err := gv.ReadUserPassword("Enter password:")
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
 	// render invoice
 	invoiceNumber,err := gv.RenderInvoice(&c,password)
 	if err != nil{
