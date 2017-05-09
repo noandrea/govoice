@@ -23,6 +23,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"os"
 	"github.com/leekchan/accounting"
+	"time"
 )
 
 // searchCmd represents the search command
@@ -57,23 +58,56 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// searchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	iq := gv.DefaultInvoiceQuery()
+
+	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01")
+	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(gv.QUERY_DATE_FORMAT), "date range to (default today)")
+	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (date_from and date_to have precedence over this parameter)")
+	searchCmd.Flags().Float64P("amount_greater_equal", "age", iq.AmountGE, "Amount greater or equals to" )
+	searchCmd.Flags().Float64P("amount_lower_equal", "ale", iq.AmountLE, "Amount lower or equals to" )
+
 
 }
 
 func search(cmd *cobra.Command, args []string) {
 
 	var c gv.Config
+	var err error
 
 	// parse configuration
 	viper.Unmarshal(&c)
 
-	if len(args) == 0{
-		fmt.Println("missing query string")
-		return
+
+	// default query parameters
+	iq := gv.DefaultInvoiceQuery()
+
+	if len(args) > 0{
+		iq.Customer = strings.Join(args, " ")
+	}
+	// get the amount range
+	iq.AmountLE,_ = cmd.Flags().GetFloat64("amount_lower_equal")
+	iq.AmountGE,_ = cmd.Flags().GetFloat64("amount_greater_equal")
+
+	// get the months range
+	m,_ := cmd.Flags().GetInt("months")
+	if m > 0 {
+		df := time.Now().AddDate(0,m*-1,0)
+		iq.DateFrom = df
 	}
 
-	entries, total, elapsed, err := gv.SearchInvoice(strings.Join(args, " "))
+	// get the date_from/date_to range
+	df,_ := cmd.Flags().GetString("date_from")
+	if iq.DateFrom, err = time.Parse("2006-01-02", df); err != nil{
+		fmt.Println("unrecognized date", df)
+	}
+
+	dt,_ := cmd.Flags().GetString("date_to")
+	if iq.DateTo, err = time.Parse("2006-01-02", dt); err != nil{
+		fmt.Println("unrecognized date", dt)
+	}
+
+
+	entries, total, elapsed, err := gv.SearchInvoice(iq)
 	if err != nil{
 		fmt.Println(err)
 		return
@@ -97,7 +131,7 @@ func search(cmd *cobra.Command, args []string) {
 			path,
 			e.Number,
 			e.Customer,
-			e.Date,
+			e.Date.Format(gv.QUERY_DATE_FORMAT),
 			ac.FormatMoney(e.Amount),
 		})
 	}

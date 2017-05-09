@@ -58,11 +58,11 @@ func index(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 	}
 	// create the index
-	count,err := gv.CreateSearchIndex(&c,&password)
+	count,elapsed,err := gv.RebuildSearchIndex(&c,&password)
 	// if index creation is
 	if err != nil{
 		fmt.Println(err)
 	}
-	fmt.Println("indexed created with",count,"invoices")
+	fmt.Println("indexed created with",count,"invoices in",elapsed)
 }
 
