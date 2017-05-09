@@ -45,8 +45,6 @@ func TestReadInvoiceDescriptorEncrypted(t *testing.T) {
 	if i.Invoice.Number != ivoiceNumber{
 		t.Error("expected", ivoiceNumber, "found", i.Invoice.Number)
 	}
-
-
 }
 
 

@@ -11,6 +11,7 @@ type Config struct {
 	Workspace         string `toml:"workspace"`
 	SearchResultLimit int    `toml:"searchResultLimit"`
 	MasterTemplate    string `toml:"masterTemplate"`
+	DateInputFormat   string `toml:"dateInputFormat"`
 	Layout            Layout `toml:"layout"`
 }
 
@@ -60,6 +61,8 @@ func (c *Config) GetMasterPath() (string, bool) {
 	return dp, true
 }
 
+//GetInvoiceJsonPath get the path of the encrypted version of an invoice in the workspace.
+// returns the path of the invoice, and a boolean if the invoice already exists (true) or not (false)
 func (c *Config) GetInvoiceJsonPath(name string) (string, bool) {
 	return getPath(c.Workspace, name, EXT_JSONE)
 }
@@ -134,11 +137,17 @@ func GetI18nTranslationPath(lang string) string {
 	return l
 }
 
-func Setup(workspace string)(string,string) {
+// Setup setup the applications,
+// create the workspace and the master invoice
+// create the configuration with default values
+// returns the configration file path and the master template path
+func Setup(workspace string) (string, string, error) {
+	var configPath, masterPath string
 	// create configuration with defaults
 	c := Config{
-		Workspace:      workspace,
-		MasterTemplate: "_master",
+		Workspace:       workspace,
+		MasterTemplate:  "_master",
+		DateInputFormat: "%d/%m/%y",
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
 			Items:    Block{Coords{-1, 100}},
@@ -149,10 +158,23 @@ func Setup(workspace string)(string,string) {
 			Notes:    Block{Coords{-1, 240}},
 		},
 	}
+	// first create directories
+	if err := os.MkdirAll(GetConfigHome(),0770); err != nil{
+		return configPath, masterPath, err
+	}
+
+	if err := os.MkdirAll(GetI18nHome(),0770); err != nil{
+		return configPath, masterPath, err
+	}
+
+
 
 	// write default configuration file
-	configPath := GetConfigFilePath()
-	writeTomlToFile(configPath, c)
+	configPath = GetConfigFilePath()
+	err := writeTomlToFile(configPath, c)
+	if err != nil {
+		return configPath, masterPath, err
+	}
 
 	// write internationalization file
 	en := Translation{
@@ -174,7 +196,10 @@ func Setup(workspace string)(string,string) {
 		Tax:                I18NOther{"VAT"},
 	}
 	enPath := GetI18nTranslationPath("en")
-	writeTomlToFile(enPath, en)
+	err = writeTomlToFile(enPath, en)
+	if err != nil {
+		return configPath, masterPath, err
+	}
 
 	// write master.json
 	// create the config directory if not exists
@@ -187,17 +212,20 @@ func Setup(workspace string)(string,string) {
 			To:             Recipient{"Encarnicion Tellez Nino", "Calle Burch No. 139", "Valencia", "19490", "España", "55555555", "ES55555555", "etn@bs.com"},
 			PaymentDetails: BankCoordinates{"Mathis Hecht", "B Bank", "DE 1111 1111 1111 1111 11", "XXXXXXXX"},
 			Invoice:        InvoiceData{"0000000", "01.01.2017", "01.02.2017"},
-			Settings:       InvoiceSettings{45, 19, "€", "", "en"},
+			Settings:       InvoiceSettings{45, 19, "€", "", "en", ""},
 			Dailytime:      Daily{Enabled: false},
 			Items:          &[]Item{Item{"web dev", 10, 0}, Item{"training", 5, 60}},
 			Notes:          []string{"first note", "second note"},
 		}
-		writeJsonToFile(masterPath, master)
+		err = writeJsonToFile(masterPath, master)
+		if err != nil {
+			return configPath, masterPath, err
+		}
 
 	}
 
 	// create bleve index
-	createSearchIndex(false)
+	err = CreateSearchIndex()
 
-	return configPath,masterPath
+	return configPath, masterPath, err
 }

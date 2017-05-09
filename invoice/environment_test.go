@@ -48,24 +48,31 @@ func TestWorkspacePaths(t *testing.T) {
 
 func TestSetup(t *testing.T) {
 	tmpDir := os.TempDir()
-	tmpHome := path.Join(tmpDir,"govoice")
-	tmpWorkspace :=path.Join(tmpDir, "workspace")
+	tmpHome := path.Join(tmpDir, "govoice")
+	tmpWorkspace := path.Join(tmpDir, "workspace")
 
 	os.Setenv("HOME", tmpHome)
 	// check if config path and master path are set
-	configPath,masterPath := Setup(tmpWorkspace)
+	configPath, masterPath, err := Setup(tmpWorkspace)
 
-	if p :=path.Join(tmpHome,".govoice","config.toml"); configPath != p {
-		t.Error("Expected",p,"found",configPath)
+	if err != nil {
+		t.Error("error Setup", err)
+	}
+
+	if p := path.Join(tmpHome, ".govoice", "config.toml"); configPath != p {
+		t.Error("Expected", p, "found", configPath)
 		if _, err := os.Stat(p); os.IsNotExist(err) {
-			t.Error("file",p,"does not exists")
+			t.Error("file", p, "does not exists")
 		}
 	}
 
-	if p :=path.Join(tmpWorkspace,"_master.json"); masterPath != p {
-		t.Error("Expected",p,"found",masterPath)
+	if p := path.Join(tmpWorkspace, "_master.json"); masterPath != p {
+		t.Error("Expected", p, "found", masterPath)
 		if _, err := os.Stat(p); os.IsNotExist(err) {
-			t.Error("file",p,"does not exists")
+			t.Error("file", p, "does not exists")
 		}
 	}
+
+	os.RemoveAll(tmpHome)
+	os.RemoveAll(tmpWorkspace)
 }
