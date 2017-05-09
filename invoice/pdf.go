@@ -44,7 +44,7 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 	// create page
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.SetMargins(l.Style.Margins.Left, l.Style.Margins.Top, l.Style.Margins.Right)
-
+	defer pdf.Close()
 	// unicode font symbol (adding trailing space for better rendering)
 	utf8 := pdf.UnicodeTranslatorFromDescriptor("")
 	currencySymbol := utf8(invoice.Settings.CurrencySymbol + " ")
