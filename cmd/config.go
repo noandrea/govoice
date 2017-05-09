@@ -50,7 +50,10 @@ func config(cmd *cobra.Command, args []string) {
 
 	workspace, _ := cmd.LocalFlags().GetString("workspace")
 
-	cp, mp := gv.Setup(workspace)
+	cp, mp, err := gv.Setup(workspace)
+	if err != nil{
+		fmt.Println("configuration failed", err)
+	}
 
 	fmt.Println("configuration file created at    ", cp)
 	fmt.Println("master descriptor file created at", mp)
