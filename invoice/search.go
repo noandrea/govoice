@@ -67,8 +67,8 @@ func CreateSearchIndex() error {
 		return nil
 	}
 
-	index,err := initBleveIndex(indexPath)
-	if err!= nil{
+	index, err := initBleveIndex(indexPath)
+	if err != nil {
 		return err
 	}
 	defer index.Close()
@@ -83,7 +83,7 @@ func RebuildSearchIndex(c *Config, password *string) (int, time.Duration, error)
 	// delete old index if exists
 	indexPath, exists := GetSearchIndexFilePath()
 	if exists {
-		if err := os.RemoveAll(indexPath); err != nil{
+		if err := os.RemoveAll(indexPath); err != nil {
 			return counter, elapsed, err
 		}
 	}
@@ -132,7 +132,7 @@ func RebuildSearchIndex(c *Config, password *string) (int, time.Duration, error)
 	}
 	index.Batch(b)
 	elapsed = time.Since(start)
-	docsCount,_ := index.DocCount()
+	docsCount, _ := index.DocCount()
 	// return the numer of entries indexed
 	return int(docsCount), elapsed, nil
 }
@@ -211,12 +211,10 @@ func SearchInvoice(q InvoiceQuery) ([]InvoiceEntry, uint64, time.Duration, error
 	return entries, found, elapsed, err
 }
 
-
 // -------- private methods ---------
 
-
 //initBleveIndex initialize the bleve index and mappings
-func initBleveIndex(dbPath string) (bleve.Index, error){
+func initBleveIndex(dbPath string) (bleve.Index, error) {
 	var index bleve.Index
 	var err error
 	// open a new index
@@ -285,7 +283,6 @@ func addToSearchIndex(c *Config, i *Invoice) error {
 
 }
 
-
 // -------- Utilities --------
 
 //isSameDate utility function to check if two time.Time have the same date
@@ -298,13 +295,10 @@ func isSameDate(a, b time.Time) bool {
 	return false
 }
 
-
 //dateFormatToLayout convert a date format %y,%m,%d to the funny golang layout 2006,01,02
-func dateFormatToLayout(format string)(string){
+func dateFormatToLayout(format string) string {
 	format = strings.Replace(format, "%d", "02", 1)
 	format = strings.Replace(format, "%m", "01", 1)
 	format = strings.Replace(format, "%y", "2006", 1)
 	return format
 }
-
-

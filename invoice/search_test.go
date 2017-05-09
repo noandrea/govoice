@@ -1,50 +1,47 @@
 package invoice
 
 import (
-	"testing"
 	"encoding/csv"
-	"os"
-	"io"
-	"path"
-	"fmt"
-	"strings"
-	"strconv"
-	"math"
 	"errors"
+	"fmt"
+	"io"
+	"math"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+	"testing"
 	"time"
 )
 
-const SAMPLE_SIZE  = 1009
+const SAMPLE_SIZE = 1009
 
-func remap(value, start1, stop1, start2, stop2 float64)(float64, error) {
-	outgoing := start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
-	if (math.IsNaN(outgoing)) {
+func remap(value, start1, stop1, start2, stop2 float64) (float64, error) {
+	outgoing := start2 + (stop2-start2)*((value-start1)/(stop1-start1))
+	if math.IsNaN(outgoing) {
 		return 0, errors.New("NAN")
 
-	} else if (math.Abs(outgoing) == math.MaxFloat64){
+	} else if math.Abs(outgoing) == math.MaxFloat64 {
 		return 0, errors.New("infinity")
 	}
-	return outgoing, nil;
+	return outgoing, nil
 }
 
-func invoices()([]Invoice){
-	cwd,_:= os.Getwd()
-	p := path.Join(cwd,"_testresources","breweries.csv")
-	r,_ := os.Open(p)
+func invoices() []Invoice {
+	cwd, _ := os.Getwd()
+	p := path.Join(cwd, "_testresources", "breweries.csv")
+	r, _ := os.Open(p)
 	c := csv.NewReader(r)
 	// skip header
 	c.Read()
 
 	var invoices []Invoice
 
-
 	from := Recipient{"Mathis Hecht", "880 Whispering Half", "Hamburg", "67059", "Deutsheland", "9999999", "DE99999999999", "mh@ex.com"}
-
 
 	countdown := SAMPLE_SIZE
 
-	startDate,_ := time.Parse(QUERY_DATE_FORMAT,"2016-06-27")
-
+	startDate, _ := time.Parse(QUERY_DATE_FORMAT, "2016-06-27")
 
 	for {
 		record, err := c.Read()
@@ -52,7 +49,7 @@ func invoices()([]Invoice){
 			break
 		}
 		if err != nil {
-			fmt.Errorf("error: %s",err)
+			fmt.Errorf("error: %s", err)
 		}
 		if countdown <= 0 {
 			break
@@ -73,29 +70,27 @@ func invoices()([]Invoice){
 		// 12: add_user
 		// 13: last_mod
 
-
 		to := Recipient{
-			Name:record[1],
-			Address:record[2],
-			City:record[4],
-			Country:record[7],
-			AreaCode:record[6],
-			Email:record[9],
-			TaxId:strings.Repeat(record[0],8),
-			VatNumber: fmt.Sprintf("%s %s", strings.ToUpper(record[7][0:2]) ,strings.Repeat(record[0],8)),
+			Name:      record[1],
+			Address:   record[2],
+			City:      record[4],
+			Country:   record[7],
+			AreaCode:  record[6],
+			Email:     record[9],
+			TaxId:     strings.Repeat(record[0], 8),
+			VatNumber: fmt.Sprintf("%s %s", strings.ToUpper(record[7][0:2]), strings.Repeat(record[0], 8)),
 		}
 
-		numOfDays,_ := remap(float64(countdown), 0, float64(SAMPLE_SIZE), 1, 365)
-		td := startDate.AddDate(0,0,int(numOfDays))
+		numOfDays, _ := remap(float64(countdown), 0, float64(SAMPLE_SIZE), 1, 365)
+		td := startDate.AddDate(0, 0, int(numOfDays))
 
 		ins := strconv.Itoa(countdown)
 
 		invd := InvoiceData{
-			Number: fmt.Sprintf("%s%s", strings.Repeat("0", 7-len(ins)), ins ),
-			Date: td.Format(QUERY_DATE_FORMAT),
-			Due: td.AddDate(0,0,30).Format(QUERY_DATE_FORMAT),
+			Number: fmt.Sprintf("%s%s", strings.Repeat("0", 7-len(ins)), ins),
+			Date:   td.Format(QUERY_DATE_FORMAT),
+			Due:    td.AddDate(0, 0, 30).Format(QUERY_DATE_FORMAT),
 		}
-
 
 		i := Invoice{
 			From:           from,
@@ -104,14 +99,14 @@ func invoices()([]Invoice){
 			Invoice:        invd,
 			Settings:       InvoiceSettings{45, 19, "€", "", "en", "%y-%m-%d"},
 			Dailytime:      Daily{Enabled: false},
-			Items:          &[]Item{Item{"web dev", float64(1*countdown), 0}, Item{"training", float64(2*countdown), 5}},
+			Items:          &[]Item{Item{"web dev", float64(1 * countdown), 0}, Item{"training", float64(2 * countdown), 5}},
 			Notes:          []string{"first note", "second note"},
 		}
 		invoices = append(invoices, i)
 
 		//fmt.Println(i)
 
-		countdown --;
+		countdown--
 	}
 
 	return invoices
@@ -119,7 +114,7 @@ func invoices()([]Invoice){
 
 func TestSearchInvoice(t *testing.T) {
 	tmpHome := path.Join(os.TempDir(), "govoice")
-	tmpWorkspace :=path.Join(tmpHome, "workspace")
+	tmpWorkspace := path.Join(tmpHome, "workspace")
 	os.Setenv("HOME", tmpHome)
 	t.Log("home is ", os.Getenv("HOME"))
 	defer func() {
@@ -127,13 +122,12 @@ func TestSearchInvoice(t *testing.T) {
 		os.RemoveAll(tmpHome)
 	}()
 	// check if config path and master path are set
-	cfp,mp,e := Setup(tmpWorkspace)
-	if e != nil{
+	cfp, mp, e := Setup(tmpWorkspace)
+	if e != nil {
 		t.Error(e)
 	}
 
-
-	t.Log(cfp,mp)
+	t.Log(cfp, mp)
 
 	c := Config{
 		Workspace:      tmpWorkspace,
@@ -150,15 +144,15 @@ func TestSearchInvoice(t *testing.T) {
 	}
 
 	pass := "abcd^^D[é123"
-	pass = strings.Repeat(" ",32-len(pass))+pass
+	pass = strings.Repeat(" ", 32-len(pass)) + pass
 	// this creates the search index and add the invoices to the index
-	for _,i := range invoices(){
-		p,e := c.GetInvoiceJsonPath(i.Invoice.Number)
+	for _, i := range invoices() {
+		p, e := c.GetInvoiceJsonPath(i.Invoice.Number)
 		if e {
-			t.Error(p,"should not exists")
+			t.Error(p, "should not exists")
 		}
-		writeInvoiceDescriptorEncrypted(&i,&p, &pass)
-		RestoreInvoice(&c,i.Invoice.Number, pass)
+		writeInvoiceDescriptorEncrypted(&i, &p, &pass)
+		RestoreInvoice(&c, i.Invoice.Number, pass)
 		RenderInvoice(&c, pass)
 	}
 
@@ -167,7 +161,7 @@ func TestSearchInvoice(t *testing.T) {
 
 func TestRebuildSearchIndex(t *testing.T) {
 	tmpHome := path.Join(os.TempDir(), "govoice")
-	tmpWorkspace :=path.Join(tmpHome, "workspace")
+	tmpWorkspace := path.Join(tmpHome, "workspace")
 	os.Setenv("HOME", tmpHome)
 	t.Log("home is ", os.Getenv("HOME"))
 	defer func() {
@@ -175,13 +169,12 @@ func TestRebuildSearchIndex(t *testing.T) {
 		os.RemoveAll(tmpHome)
 	}()
 	// check if config path and master path are set
-	cfp,mp,e := Setup(tmpWorkspace)
-	if e != nil{
+	cfp, mp, e := Setup(tmpWorkspace)
+	if e != nil {
 		t.Error(e)
 	}
 
-
-	t.Log(cfp,mp)
+	t.Log(cfp, mp)
 
 	c := Config{
 		Workspace:      tmpWorkspace,
@@ -198,30 +191,28 @@ func TestRebuildSearchIndex(t *testing.T) {
 	}
 
 	pass := "abcd^^D[é123"
-	pass = strings.Repeat(" ",32-len(pass))+pass
+	pass = strings.Repeat(" ", 32-len(pass)) + pass
 	// this creates the search index and add the invoices to the index
-	for _,i := range invoices(){
-		p,_ := c.GetInvoiceJsonPath(i.Invoice.Number)
-		writeInvoiceDescriptorEncrypted(&i,&p, &pass)
-		RestoreInvoice(&c,i.Invoice.Number, pass)
+	for _, i := range invoices() {
+		p, _ := c.GetInvoiceJsonPath(i.Invoice.Number)
+		writeInvoiceDescriptorEncrypted(&i, &p, &pass)
+		RestoreInvoice(&c, i.Invoice.Number, pass)
 		RenderInvoice(&c, pass)
 	}
 
 	// this recreates the seaarch index should have the same results as above
-	counter, elapsed,  _ := RebuildSearchIndex(&c, &pass)
-	t.Log("indexed",counter,"invoices in",elapsed)
+	counter, elapsed, _ := RebuildSearchIndex(&c, &pass)
+	t.Log("indexed", counter, "invoices in", elapsed)
 
-	if counter != SAMPLE_SIZE{
-		t.Error("expected",SAMPLE_SIZE,"got",counter)
+	if counter != SAMPLE_SIZE {
+		t.Error("expected", SAMPLE_SIZE, "got", counter)
 	}
 
 	runQueries(t)
 
-
-
 }
 
-func runQueries(t *testing.T){
+func runQueries(t *testing.T) {
 	var expected, found uint64
 	var entries []InvoiceEntry
 	var elapsed time.Duration
@@ -231,25 +222,25 @@ func runQueries(t *testing.T){
 	// #####################  first search
 	q = DefaultInvoiceQuery()
 
-	q.DateFrom,_ = time.Parse(QUERY_DATE_FORMAT,"2017-01-01")
-	q.DateTo,_   = time.Parse(QUERY_DATE_FORMAT,"2017-01-10")
+	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-01")
+	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-10")
 
 	// 25, 25, xx, nil
-	entries, found, elapsed, err =  SearchInvoice(q)
+	entries, found, elapsed, err = SearchInvoice(q)
 	expected = 25
 
-	check(t,q, expected, entries, found, elapsed, err)
+	check(t, q, expected, entries, found, elapsed, err)
 
 	// #####################  second search
 	q = DefaultInvoiceQuery()
 
-	q.DateFrom,_ = time.Parse(QUERY_DATE_FORMAT,"2017-01-01")
-	q.DateTo,_   = time.Parse(QUERY_DATE_FORMAT,"2017-02-10")
+	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-01")
+	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-02-10")
 	// 110, 110, xx, nil
 	expected = 111
 
-	entries, found, elapsed, err =  SearchInvoice(q)
-	check(t, q,expected, entries, found, elapsed, err)
+	entries, found, elapsed, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, err)
 
 	// #####################  filter by amount
 	q = DefaultInvoiceQuery()
@@ -259,7 +250,7 @@ func runQueries(t *testing.T){
 	// 18, 18, xx, nil
 	expected = 18
 
-	entries, found, elapsed, err =  SearchInvoice(q)
+	entries, found, elapsed, err = SearchInvoice(q)
 	check(t, q, expected, entries, found, elapsed, err)
 
 	// #####################  filter by date and amount
@@ -267,44 +258,44 @@ func runQueries(t *testing.T){
 
 	q.AmountGE = 10
 	q.AmountLE = 1000
-	q.DateFrom,_ = time.Parse(QUERY_DATE_FORMAT,"2016-06-29")
-	q.DateTo,_   = time.Parse(QUERY_DATE_FORMAT,"2016-07-01")
+	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2016-06-29")
+	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2016-07-01")
 	// 6, 6, xx, nil
 	expected = 6
 
-	entries, found, elapsed, err =  SearchInvoice(q)
-	check(t, q,expected, entries, found, elapsed, err)
+	entries, found, elapsed, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, err)
 
 	// #####################  filter by date, amount, customer
 	q = DefaultInvoiceQuery()
 
 	q.AmountGE = 1000
 	q.AmountLE = 20000
-	q.DateFrom,_ = time.Parse(QUERY_DATE_FORMAT,"2016-06-27")
-	q.DateTo,_   = time.Parse(QUERY_DATE_FORMAT,"2017-07-10")
+	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2016-06-27")
+	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-07-10")
 	q.Customer = "pizz"
 	expected = 4
 
 	// 5, 5, xx, nil
-	entries, found, elapsed, err =  SearchInvoice(q)
-	check(t,q, expected, entries, found, elapsed, err)
+	entries, found, elapsed, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, err)
 }
 
-func check(t *testing.T, q InvoiceQuery, expected uint64, entries []InvoiceEntry, found uint64, elapsed time.Duration, err error){
+func check(t *testing.T, q InvoiceQuery, expected uint64, entries []InvoiceEntry, found uint64, elapsed time.Duration, err error) {
 	t.Log("query", q)
 	t.Log("found", found, "entries in ", elapsed)
-	if err != nil{
+	if err != nil {
 		t.Error("error", err)
 	}
 	if found != expected {
-		t.Error("expected",expected,"got", found)
+		t.Error("expected", expected, "got", found)
 	}
-	for _,r := range entries{
-		if r.Date.After(q.DateTo) || r.Date.Before(q.DateFrom){
-			t.Error("expected", r.Date, "between", q.DateFrom,"and",q.DateTo)
+	for _, r := range entries {
+		if r.Date.After(q.DateTo) || r.Date.Before(q.DateFrom) {
+			t.Error("expected", r.Date, "between", q.DateFrom, "and", q.DateTo)
 		}
 		if r.Amount > q.AmountLE || r.Amount < q.AmountGE {
-			t.Error("expected", r.Amount, "between", q.AmountLE,"and",q.AmountGE)
+			t.Error("expected", r.Amount, "between", q.AmountLE, "and", q.AmountGE)
 		}
 		t.Log("number:", r.Number, "date:", r.Date, "amount:", r.Amount, "customer:", r.Customer)
 	}

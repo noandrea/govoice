@@ -46,7 +46,6 @@ func init() {
 
 }
 
-
 func restore(cmd *cobra.Command, args []string) {
 
 	if len(args) != 1 {
@@ -61,16 +60,15 @@ func restore(cmd *cobra.Command, args []string) {
 	invoiceNumber := args[0]
 
 	// read user password for decrypt
-	password,err := gv.ReadUserPassword("Enter password:")
-	if err != nil{
+	password, err := gv.ReadUserPassword("Enter password:")
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	err = gv.RestoreInvoice(&c, invoiceNumber, password)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 	}
-
 
 }

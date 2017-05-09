@@ -1,34 +1,34 @@
 package invoice
 
 import (
+	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/pelletier/go-toml"
+	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"io/ioutil"
 	"os"
-	"strings"
 	"path"
-	"golang.org/x/crypto/ssh/terminal"
+	"strings"
 	"syscall"
-	"bufio"
-	"errors"
 )
 
 const (
-	EXT_PDF = "pdf"
-	EXT_JSON = "json"
-	EXT_TOML = "toml"
+	EXT_PDF   = "pdf"
+	EXT_JSON  = "json"
+	EXT_TOML  = "toml"
 	EXT_JSONE = "json.cfb"
-	EXT_CFB = ".cfb"
+	EXT_CFB   = ".cfb"
 )
 
 // ReadInvoice parse the json file for an invoice
-func readInvoiceDescriptor(path *string, i *Invoice) (error){
+func readInvoiceDescriptor(path *string, i *Invoice) error {
 	rawJsonDescriptor, err := ioutil.ReadFile(*path)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func readInvoiceDescriptor(path *string, i *Invoice) (error){
 	return nil
 }
 
-func readInvoiceDescriptorEncrypted(path *string, i *Invoice, password *string)(error) {
+func readInvoiceDescriptorEncrypted(path *string, i *Invoice, password *string) error {
 	rawJsonDescriptor, err := ioutil.ReadFile(*path)
 	if err != nil {
 		return err
@@ -63,40 +63,40 @@ func writeInvoiceDescriptorEncrypted(i *Invoice, jsonPath, password *string) {
 	}
 }
 
-func writeTomlToFile(path string, v interface{}) error{
+func writeTomlToFile(path string, v interface{}) error {
 	content, _ := toml.Marshal(v)
-	if !strings.HasSuffix(path, ".toml"){
+	if !strings.HasSuffix(path, ".toml") {
 		path += ".toml"
 	}
 	return ioutil.WriteFile(path, content, os.FileMode(0660))
 }
 
-func writeJsonToFile(path string, v interface{}) error{
+func writeJsonToFile(path string, v interface{}) error {
 	content, _ := json.MarshalIndent(v, "", "  ")
-	if !strings.HasSuffix(path, ".json"){
+	if !strings.HasSuffix(path, ".json") {
 		path += ".json"
 	}
 	return ioutil.WriteFile(path, content, os.FileMode(0660))
 }
 
-func ReadMasterDescriptor(c *Config) (Invoice,error){
+func ReadMasterDescriptor(c *Config) (Invoice, error) {
 	// check if master exists
 	var i Invoice
 	descriptorPath, exists := c.GetMasterPath()
 	if !exists {
 		// file not exists, search for the encrypted version
-		return i,errors.New("master descriptor not found!")
+		return i, errors.New("master descriptor not found!")
 	}
 	readInvoiceDescriptor(&descriptorPath, &i)
 	return i, nil
 }
 
-func ReadUserPassword(message string)(string,error){
+func ReadUserPassword(message string) (string, error) {
 	// password
 	fmt.Print(message)
-	bytePassword,_ := terminal.ReadPassword(int(syscall.Stdin))
+	bytePassword, _ := terminal.ReadPassword(int(syscall.Stdin))
 	// pad the key for aes encryption
-	password := fmt.Sprintf("%32s",strings.TrimSpace(string(bytePassword)))
+	password := fmt.Sprintf("%32s", strings.TrimSpace(string(bytePassword)))
 	if len(password) > 32 {
 		return "", errors.New("password is too long (max 32 characters)")
 	}
@@ -104,7 +104,7 @@ func ReadUserPassword(message string)(string,error){
 	return password, nil
 }
 
-func ReadUserInput(message string)(string){
+func ReadUserInput(message string) string {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println(message)
 	text, _ := reader.ReadString('\n')
@@ -114,8 +114,8 @@ func ReadUserInput(message string)(string){
 //getPath build a path composed of baseFolder, fileName, extension
 //
 // returns the composed path and a bool to tell if the file exists (true) or not (false)
-func getPath(basePath, fileName, ext string )(string, bool) {
-	dp := path.Join(basePath, fmt.Sprintf("%s.%s",fileName, ext))
+func getPath(basePath, fileName, ext string) (string, bool) {
+	dp := path.Join(basePath, fmt.Sprintf("%s.%s", fileName, ext))
 	if _, err := os.Stat(dp); os.IsNotExist(err) {
 		return dp, false
 	}

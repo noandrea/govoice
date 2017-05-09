@@ -15,10 +15,9 @@
 package cmd
 
 import (
-
 	"github.com/spf13/cobra"
-	gv "gitlab.com/almost_cc/govoice/invoice"
 	"github.com/spf13/viper"
+	gv "gitlab.com/almost_cc/govoice/invoice"
 
 	"fmt"
 )
@@ -38,7 +37,6 @@ func init() {
 
 }
 
-
 func render(cmd *cobra.Command, args []string) {
 
 	// parse configuration
@@ -46,16 +44,16 @@ func render(cmd *cobra.Command, args []string) {
 	viper.Unmarshal(&c)
 	// read the password
 	password, err := gv.ReadUserPassword("Enter password:")
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	// render invoice
-	invoiceNumber,err := gv.RenderInvoice(&c,password)
-	if err != nil{
+	invoiceNumber, err := gv.RenderInvoice(&c, password)
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	path,_ := c.GetInvoicePdfPath(invoiceNumber)
-	fmt.Println("rendered invoice number",invoiceNumber,"\n",path)
+	path, _ := c.GetInvoicePdfPath(invoiceNumber)
+	fmt.Println("rendered invoice number", invoiceNumber, "\n", path)
 }

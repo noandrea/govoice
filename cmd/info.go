@@ -15,20 +15,19 @@
 package cmd
 
 import (
-
-	"github.com/spf13/cobra"
 	"github.com/olekukonko/tablewriter"
-	"os"
-	gv "gitlab.com/almost_cc/govoice/invoice"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	gv "gitlab.com/almost_cc/govoice/invoice"
+	"os"
 )
 
 // infoCmd represents the info command
 var infoCmd = &cobra.Command{
 	Use:   "info",
 	Short: "print information about paths (when you forget where they are)",
-	Long: ``,
-	Run: info,
+	Long:  ``,
+	Run:   info,
 }
 
 func init() {
@@ -56,9 +55,9 @@ func info(cmd *cobra.Command, args []string) {
 	// parse configuration
 	viper.Unmarshal(&c)
 
-	mp,_ := c.GetMasterPath()
+	mp, _ := c.GetMasterPath()
 	println()
-	table.SetHeader([]string{"path","desc"})
+	table.SetHeader([]string{"path", "desc"})
 	table.Append([]string{gv.GetConfigHome(), "application home"})
 	table.Append([]string{gv.GetConfigFilePath(), "config file"})
 	table.Append([]string{gv.GetI18nHome(), "translation files"})
@@ -66,6 +65,5 @@ func info(cmd *cobra.Command, args []string) {
 	table.Append([]string{mp, "master descriptor"})
 	table.Render()
 	println()
-
 
 }

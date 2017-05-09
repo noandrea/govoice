@@ -159,15 +159,13 @@ func Setup(workspace string) (string, string, error) {
 		},
 	}
 	// first create directories
-	if err := os.MkdirAll(GetConfigHome(),0770); err != nil{
+	if err := os.MkdirAll(GetConfigHome(), 0770); err != nil {
 		return configPath, masterPath, err
 	}
 
-	if err := os.MkdirAll(GetI18nHome(),0770); err != nil{
+	if err := os.MkdirAll(GetI18nHome(), 0770); err != nil {
 		return configPath, masterPath, err
 	}
-
-
 
 	// write default configuration file
 	configPath = GetConfigFilePath()

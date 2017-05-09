@@ -6,9 +6,9 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/olekukonko/tablewriter"
 	"log"
+	"os"
 	"strconv"
 	"strings"
-	"os"
 )
 
 var step float64 = 4
@@ -17,12 +17,12 @@ const (
 	BOX_FULL_WIDTH     float64 = 0
 	DEFAULT_LINE_BREAK float64 = -1
 
-	TEXT_ALIGN_LEFT = "L"
-	NO_FILL         = false
-	FILL            = true
-	NO_BORDER       = "0"
-	BORDER_BOTTOM   = "1B"
-	BORDER_TOP_BOTTOM      = "TB"
+	TEXT_ALIGN_LEFT   = "L"
+	NO_FILL           = false
+	FILL              = true
+	NO_BORDER         = "0"
+	BORDER_BOTTOM     = "1B"
+	BORDER_TOP_BOTTOM = "TB"
 
 	FONT_STYLE_BOLD      = "B"
 	FONT_STYLE_NORMAL    = ""
@@ -30,7 +30,6 @@ const (
 	TEXT_ALIGN_RIGHT_TOP = "RT"
 	TEXT_ALIGN_RIGHT_BTM = "RB"
 	TEXT_ALIGN_LEFT_MID  = "LM"
-
 
 	BLACK_R, BLACK_G, BLACK_B = 0, 0, 0
 	WHITE_R, WHITE_G, WHITE_B = 255, 255, 255
@@ -57,13 +56,12 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 
 	// get page size and margins
 	w, _ := pdf.GetPageSize()
-	ml, _,_,_ := pdf.GetMargins()
+	ml, _, _, _ := pdf.GetMargins()
 
 	// title
 	title := utf8(strings.ToUpper(invoice.From.Name))
 	pdf.SetFont(l.Style.FontFamily, FONT_STYLE_BOLD, l.Style.FontSizeH1)
 	pdf.CellFormat(BOX_FULL_WIDTH, l.Style.LineHeightH1, title, BORDER_BOTTOM, 0, TEXT_ALIGN_RIGHT_MID, NO_FILL, 0, "")
-
 
 	pdf.Ln(DEFAULT_LINE_BREAK)
 	pdf.SetFont(l.Style.FontFamily, FONT_STYLE_NORMAL, l.Style.FontSizeSmall)
@@ -93,12 +91,10 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 	pdf.SetXY(l.Items.Position.X, l.Items.Position.Y)
 	var c1v, c2v, c3v, c4v string // cell values
 
-
 	// print table in console
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
-
 
 	// calculate the column widths
 	table_max_width := w - (ml + ml)
@@ -108,8 +104,8 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 	c3w := table_max_width * (l.Style.TableCol3W / 100)
 	c4w := table_max_width * (l.Style.TableCol4W / 100)
 	// create th row styles
-	headerRowStyle := RowStyle{[]float64{c1w,c2w,c3w,c4w},l.Style.TableHeadHeight,NO_BORDER,TEXT_ALIGN_LEFT_MID,FILL}
-	normalRowStyle := RowStyle{[]float64{c1w,c2w,c3w,c4w},l.Style.TableRowHeight,BORDER_BOTTOM,TEXT_ALIGN_LEFT_MID,NO_FILL}
+	headerRowStyle := RowStyle{[]float64{c1w, c2w, c3w, c4w}, l.Style.TableHeadHeight, NO_BORDER, TEXT_ALIGN_LEFT_MID, FILL}
+	normalRowStyle := RowStyle{[]float64{c1w, c2w, c3w, c4w}, l.Style.TableRowHeight, BORDER_BOTTOM, TEXT_ALIGN_LEFT_MID, NO_FILL}
 
 	// write headers
 	pdf.SetTextColor(WHITE_R, WHITE_G, WHITE_B)
@@ -119,10 +115,10 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 	c2v = T("quantity")
 	c3v = T("rate")
 	c4v = T("cost")
-	data := []string{c1v,c2v,c3v,c4v}
+	data := []string{c1v, c2v, c3v, c4v}
 	// table header console
 	table.SetHeader(data)
-	renderRow(pdf,&headerRowStyle,data)
+	renderRow(pdf, &headerRowStyle, data)
 
 	pdf.SetTextColor(BLACK_R, BLACK_G, BLACK_B)
 
@@ -130,7 +126,7 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 	ac := accounting.Accounting{Symbol: currencySymbol, Precision: 2}
 
 	//  log.Print(invoice.Items)
-	if invoice.Items == nil{
+	if invoice.Items == nil {
 		items := []Item{}
 		invoice.Items = &items
 	}
@@ -146,41 +142,40 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 		c3v = ac.FormatMoney(itemPrice)
 		c4v = ac.FormatMoney(itemCost)
 
-		data = []string{c1v,c2v,c3v,c4v }
+		data = []string{c1v, c2v, c3v, c4v}
 		// append data for the console output
 		table.Append(data)
 		// render pdf row
-		renderRow(pdf,&normalRowStyle, data)
+		renderRow(pdf, &normalRowStyle, data)
 
 	}
 	pdf.Ln(l.Style.TableRowHeight)
 	// total and subtotal
-	subtotal,total := invoice.GetTotals()
+	subtotal, total := invoice.GetTotals()
 
 	// subtotal
 	c1v, c2v, c3v, c4v = T("subtotal"), "", "", ac.FormatMoney(subtotal)
-	data = []string{c1v,c2v,c3v,c4v }
+	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append(data)
 	// render pdf
-	renderRow(pdf, &normalRowStyle,data)
+	renderRow(pdf, &normalRowStyle, data)
 
 	// vat
 	c1v, c2v, c3v, c4v = T("tax"), "", strconv.FormatFloat(invoice.Settings.VatRate, 'f', 2, 64)+" %", ac.FormatMoney(total-subtotal)
-	data = []string{c1v,c2v,c3v,c4v }
+	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
-	table.Append([]string{c1v,c2v,c3v,c4v })
-	renderRow(pdf, &normalRowStyle,data)
-
+	table.Append([]string{c1v, c2v, c3v, c4v})
+	renderRow(pdf, &normalRowStyle, data)
 
 	// total
 	pdf.SetFont(l.Style.FontFamily, FONT_STYLE_BOLD, l.Style.FontSizeNormal)
 
 	c1v, c2v, c3v, c4v = T("total"), "", "", ac.FormatMoney(total)
-	data = []string{c1v,c2v,c3v,c4v }
+	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append(data)
-	renderRow(pdf, &normalRowStyle,data)
+	renderRow(pdf, &normalRowStyle, data)
 
 	// render console table
 	table.Render()
@@ -204,7 +199,7 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 }
 
 // layoutComputeDefaults All the X values that are < 0 will be defaulted to Margin.X
-func layoutComputeDefaults(l Layout) (Layout){
+func layoutComputeDefaults(l Layout) Layout {
 	if l.From.Position.X < 0 {
 		l.From.Position.X = l.Style.Margins.Left
 	}
@@ -240,24 +235,24 @@ func renderBlock(pdf *gofpdf.Fpdf, b *Block, title, content string, s *Style) {
 	pdf.MultiCell(BOX_FULL_WIDTH, s.LineHeightNormal, title, NO_BORDER, TEXT_ALIGN_LEFT, NO_FILL)
 
 	// write content
-	pdf.SetXY(b.Position.X, b.Position.Y + s.FontSizeH2/4)
+	pdf.SetXY(b.Position.X, b.Position.Y+s.FontSizeH2/4)
 	pdf.SetFont(s.FontFamily, FONT_STYLE_NORMAL, s.FontSizeNormal)
 	content = tr(content)
 	pdf.MultiCell(BOX_FULL_WIDTH, s.LineHeightNormal, content, NO_BORDER, TEXT_ALIGN_LEFT, NO_FILL)
 }
 
-func renderRow(pdf *gofpdf.Fpdf, s *RowStyle, colValues []string)  {
+func renderRow(pdf *gofpdf.Fpdf, s *RowStyle, colValues []string) {
 	// there are more columns than data
-	for i,w := range s.ColWidths{
+	for i, w := range s.ColWidths {
 		pdf.CellFormat(w, s.Height, colValues[i], s.Border, 0, s.TextAlign, s.Fill, 0, "")
 	}
 	pdf.Ln(s.Height)
 }
 
-type RowStyle struct{
+type RowStyle struct {
 	ColWidths []float64
-	Height float64
-	Border string
+	Height    float64
+	Border    string
 	TextAlign string
-	Fill bool
+	Fill      bool
 }

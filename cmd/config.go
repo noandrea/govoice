@@ -25,8 +25,8 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "configure govoice",
-	Long: `the config command should be used once for installation`,
-	Run: config,
+	Long:  `the config command should be used once for installation`,
+	Run:   config,
 }
 
 func init() {
@@ -51,7 +51,7 @@ func config(cmd *cobra.Command, args []string) {
 	workspace, _ := cmd.LocalFlags().GetString("workspace")
 
 	cp, mp, err := gv.Setup(workspace)
-	if err != nil{
+	if err != nil {
 		fmt.Println("configuration failed", err)
 	}
 
