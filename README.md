@@ -97,7 +97,12 @@ Configuration
 Downloads
 ============
 
-[links to build files]
+*govoice* is available for:
+- [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build%3Alinux)
+- [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build%3Amac)
+- [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build%3Awindows)
+
+all builds are for amd64
  
 Known issues
 ============
