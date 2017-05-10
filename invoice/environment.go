@@ -145,9 +145,10 @@ func Setup(workspace string) (string, string, error) {
 	var configPath, masterPath string
 	// create configuration with defaults
 	c := Config{
-		Workspace:       workspace,
-		MasterTemplate:  "_master",
-		DateInputFormat: "%d/%m/%y",
+		Workspace:         workspace,
+		MasterTemplate:    "_master",
+		DateInputFormat:   "%d/%m/%y",
+		SearchResultLimit: 50,
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
 			Items:    Block{Coords{-1, 100}},
@@ -206,7 +207,7 @@ func Setup(workspace string) (string, string, error) {
 	// don't overwrite the master if already exists
 	if !exists {
 		master := Invoice{
-			From:           Recipient{"Mathis Hecht", "880 Whispering Half", "Hamburg", "67059", "Deutsheland", "9999999", "DE99999999999", "mh@ex.com"},
+			From:           Recipient{"Mathis Hecht", "880 Whispering Half", "Hamburg", "67059", "Deutschland", "9999999", "DE99999999999", "mh@ex.com"},
 			To:             Recipient{"Encarnicion Tellez Nino", "Calle Burch No. 139", "Valencia", "19490", "España", "55555555", "ES55555555", "etn@bs.com"},
 			PaymentDetails: BankCoordinates{"Mathis Hecht", "B Bank", "DE 1111 1111 1111 1111 11", "XXXXXXXX"},
 			Invoice:        InvoiceData{"0000000", "01.01.2017", "01.02.2017"},

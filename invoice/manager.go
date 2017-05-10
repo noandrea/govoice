@@ -66,7 +66,7 @@ type InvoiceSettings struct {
 	CurrencySymbol  string  `json:"currency_symbol"`
 	QuantitySymbol  string  `json:"quantity_symbol"`
 	Language        string  `json:"lang"`
-	DateInputFormat string  `json:"projects",omitempty`
+	DateInputFormat string  `json:"date_format",omitempty`
 }
 
 type InvoiceData struct {
