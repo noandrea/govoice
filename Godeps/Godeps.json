@@ -1,0 +1,339 @@
+{
+	"ImportPath": "gitlab.com/almost_cc/govoice",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/blevesearch/bleve",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/analyzer/standard",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/datetime/flexible",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/datetime/optional",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/lang/en",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/token/lowercase",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/token/porter",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/token/stop",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/analysis/tokenizer/unicode",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/document",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/geo",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/index",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/index/store",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/index/store/boltdb",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/index/store/gtreap",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/index/upsidedown",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/mapping",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/numeric",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/registry",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/collector",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/facet",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/highlight",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/highlight/format/html",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/highlight/fragmenter/simple",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/highlight/highlighter/html",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/highlight/highlighter/simple",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/query",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/scorer",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/bleve/search/searcher",
+			"Comment": "v0.5.0-230-g17e21be7",
+			"Rev": "17e21be71ad41256baee0ae3023a048fa1826bb1"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/go-porterstemmer",
+			"Comment": "v1.0.1-9-g23a2c8e",
+			"Rev": "23a2c8e5cf1f380f27722c6d2ae8896431dc7d0e"
+		},
+		{
+			"ImportPath": "github.com/blevesearch/segment",
+			"Rev": "762005e7a34fd909a84586299f1dd457371d36ee"
+		},
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.3.0-58-ge9cf4fa",
+			"Rev": "e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd"
+		},
+		{
+			"ImportPath": "github.com/fsnotify/fsnotify",
+			"Comment": "v1.4.2-6-g4da3e2c",
+			"Rev": "4da3e2cfbabc9f751898f250b49f2439785783a1"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "2bba0603135d7d7f5cb73b2125beeda19c09f4ef"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/ast",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/parser",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/scanner",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/strconv",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/hcl/token",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/parser",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/scanner",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/hcl/json/token",
+			"Rev": "7fa7fff964d035e8a162cce3a164b3ad02ad651b"
+		},
+		{
+			"ImportPath": "github.com/inconshreveable/mousetrap",
+			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+		},
+		{
+			"ImportPath": "github.com/jung-kurt/gofpdf",
+			"Rev": "b572f8a6f278a31b4ff7dd03c0bb348545022f51"
+		},
+		{
+			"ImportPath": "github.com/leekchan/accounting",
+			"Comment": "v0.2",
+			"Rev": "a35854c075934d6aa1a6c1ab3ea8a82ee0dc1a93"
+		},
+		{
+			"ImportPath": "github.com/magiconair/properties",
+			"Comment": "v1.7.2-7-g51463bf",
+			"Rev": "51463bfca2576e06c62a8504b5c0f06d61312647"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-runewidth",
+			"Comment": "v0.0.2-1-g14207d2",
+			"Rev": "14207d285c6c197daabb5c9793d63e7af9ab2d50"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "cc8532a8e9a55ea36402aa21efdf403a60d34096"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n",
+			"Comment": "v1.8.0-3-gf373441",
+			"Rev": "f373441d6d54a32891b2d8b1dbf99bc518f3d60d"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/bundle",
+			"Comment": "v1.8.0-3-gf373441",
+			"Rev": "f373441d6d54a32891b2d8b1dbf99bc518f3d60d"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/language",
+			"Comment": "v1.8.0-3-gf373441",
+			"Rev": "f373441d6d54a32891b2d8b1dbf99bc518f3d60d"
+		},
+		{
+			"ImportPath": "github.com/nicksnyder/go-i18n/i18n/translation",
+			"Comment": "v1.8.0-3-gf373441",
+			"Rev": "f373441d6d54a32891b2d8b1dbf99bc518f3d60d"
+		},
+		{
+			"ImportPath": "github.com/olekukonko/tablewriter",
+			"Rev": "febf2d34b54a69ce7530036c7503b1c9fbfdf0bb"
+		},
+		{
+			"ImportPath": "github.com/pelletier/go-buffruneio",
+			"Comment": "v0.2.0",
+			"Rev": "c37440a7cf42ac63b919c752ca73a85067e05992"
+		},
+		{
+			"ImportPath": "github.com/pelletier/go-toml",
+			"Comment": "v0.5.0-7-gfe206ef",
+			"Rev": "fe206efb84b2bc8e8cfafe6b4c1826622be969e3"
+		},
+		{
+			"ImportPath": "github.com/spf13/afero",
+			"Rev": "9be650865eab0c12963d8753212f4f9c66cdcf12"
+		},
+		{
+			"ImportPath": "github.com/spf13/afero/mem",
+			"Rev": "9be650865eab0c12963d8753212f4f9c66cdcf12"
+		},
+		{
+			"ImportPath": "github.com/spf13/cast",
+			"Comment": "v1.1.0",
+			"Rev": "acbeb36b902d72a7a4c18e8f3241075e7ab763e4"
+		},
+		{
+			"ImportPath": "github.com/spf13/cobra",
+			"Rev": "3d7bff8a321b0a0f88b115558bb7e21bec9124ab"
+		},
+		{
+			"ImportPath": "github.com/spf13/jwalterweatherman",
+			"Rev": "fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "f1d95a35e132e8a1868023a08932b14f0b8b8fcb"
+		},
+		{
+			"ImportPath": "github.com/spf13/viper",
+			"Rev": "0967fc9aceab2ce9da34061253ac10fb99bba5b2"
+		},
+		{
+			"ImportPath": "github.com/steveyen/gtreap",
+			"Rev": "0abe01ef9be25c4aedc174758ec2d917314d6d70"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "96846453c37f0876340a66a47f3f75b1f3a6cd2d"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "5602c733f70afc6dcec6766be0d5034d4c4f14de"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "ea9bcade75cb975a0b9738936568ab388b845617"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "19e3104b43db45fca0303f489a9536087b184802"
+		},
+		{
+			"ImportPath": "golang.org/x/text/unicode/norm",
+			"Rev": "19e3104b43db45fca0303f489a9536087b184802"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b"
+		}
+	]
+}

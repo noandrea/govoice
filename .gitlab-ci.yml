@@ -20,8 +20,8 @@ format:
     script:
         # Add here all the dependencies, or use glide/govendor to get
         # them automatically.
-        - curl https://glide.sh/get | sh
-        - glide install
+        - go get github.com/tools/godep
+        - godep restore
         - go get github.com/alecthomas/kingpin
         - go tool vet -composites=false -shadow=true *.go
         - go test -cover -race $(go list ./... | grep -v /vendor/)
@@ -31,8 +31,8 @@ compile:
     script:
         # Add here all the dependencies, or use glide/govendor/...
         # to get them automatically.
-        - curl https://glide.sh/get | sh
-        - glide install
+        - go get github.com/tools/godep
+        - godep restore
         - go get github.com/alecthomas/kingpin
         # Better put this in a Makefile
         - go build -race -ldflags "-extldflags '-static'" -o govoice
