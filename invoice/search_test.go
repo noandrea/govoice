@@ -112,15 +112,13 @@ func invoices() []Invoice {
 	return invoices
 }
 
+
 func TestSearchInvoice(t *testing.T) {
-	tmpHome := path.Join(os.TempDir(), "govoice")
-	tmpWorkspace := path.Join(tmpHome, "workspace")
-	os.Setenv("HOME", tmpHome)
+	tmpHome, tmpWorkspace := makeTmpHome()
+	defer os.RemoveAll(tmpHome)
+
 	t.Log("home is ", os.Getenv("HOME"))
-	defer func() {
-		t.Log("running deferred action, removing folder ", tmpHome)
-		os.RemoveAll(tmpHome)
-	}()
+
 	// check if config path and master path are set
 	cfp, mp, e := Setup(tmpWorkspace)
 	if e != nil {
@@ -160,14 +158,10 @@ func TestSearchInvoice(t *testing.T) {
 }
 
 func TestRebuildSearchIndex(t *testing.T) {
-	tmpHome := path.Join(os.TempDir(), "govoice")
-	tmpWorkspace := path.Join(tmpHome, "workspace")
-	os.Setenv("HOME", tmpHome)
+	tmpHome, tmpWorkspace := makeTmpHome()
+	defer os.RemoveAll(tmpHome)
+
 	t.Log("home is ", os.Getenv("HOME"))
-	defer func() {
-		t.Log("running deferred action. deleting test folder", tmpHome)
-		os.RemoveAll(tmpHome)
-	}()
 	// check if config path and master path are set
 	cfp, mp, e := Setup(tmpWorkspace)
 	if e != nil {

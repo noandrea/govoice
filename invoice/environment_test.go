@@ -4,16 +4,27 @@ import (
 	"os"
 	"path"
 	"testing"
+	"github.com/satori/go.uuid"
 )
+
+
+//makeTmpHome create a random tmp home to execute tests to prevent race conditions.
+func makeTmpHome()(string,string){
+	u1 := uuid.NewV4().String()
+	tmpHome := path.Join(os.TempDir(), "govoice", u1)
+	tmpWorkspace := path.Join(tmpHome, "workspace")
+	os.Setenv("HOME", tmpHome)
+	return tmpHome,tmpWorkspace
+}
 
 func TestWorkspacePaths(t *testing.T) {
 
-	workspaceBase := os.TempDir()
-	workspaceName := "govoice_workspace"
+	tmpHome, tmpWorkspace := makeTmpHome()
+	defer os.RemoveAll(tmpHome)
+	t.Log("home is ", os.Getenv("HOME"))
 
-	workspace := path.Join(workspaceBase, workspaceName)
 	c := Config{
-		Workspace:      workspace,
+		Workspace:      tmpWorkspace,
 		MasterTemplate: "_master",
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
@@ -32,7 +43,7 @@ func TestWorkspacePaths(t *testing.T) {
 		t.Error("path ", filePath, "should not exists") // dumb test
 	}
 
-	if fp := path.Join(workspaceBase, workspaceName, "0000.pdf"); filePath != fp {
+	if fp := path.Join(tmpWorkspace, "0000.pdf"); filePath != fp {
 		t.Error("Expected\n", fp, "\nfound\n", filePath)
 	}
 	// json
@@ -41,17 +52,16 @@ func TestWorkspacePaths(t *testing.T) {
 		t.Error("path ", filePath, "should not exists") // dumb test
 	}
 
-	if fp := path.Join(workspaceBase, workspaceName, "0000.json.cfb"); filePath != fp {
+	if fp := path.Join(tmpWorkspace, "0000.json.cfb"); filePath != fp {
 		t.Error("Expected\n", fp, "\nfound\n", filePath)
 	}
 }
 
 func TestSetup(t *testing.T) {
-	tmpDir := os.TempDir()
-	tmpHome := path.Join(tmpDir, "govoice")
-	tmpWorkspace := path.Join(tmpDir, "workspace")
+	tmpHome, tmpWorkspace := makeTmpHome()
+	defer os.RemoveAll(tmpHome)
 
-	os.Setenv("HOME", tmpHome)
+	t.Log("home is ", os.Getenv("HOME"))
 	// check if config path and master path are set
 	configPath, masterPath, err := Setup(tmpWorkspace)
 
@@ -72,7 +82,4 @@ func TestSetup(t *testing.T) {
 			t.Error("file", p, "does not exists")
 		}
 	}
-
-	os.RemoveAll(tmpHome)
-	os.RemoveAll(tmpWorkspace)
 }
