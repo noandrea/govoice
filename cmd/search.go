@@ -63,8 +63,8 @@ func init() {
 	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01")
 	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(gv.QUERY_DATE_FORMAT), "date range to (default today)")
 	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (date_from and date_to have precedence over this parameter)")
-	searchCmd.Flags().Float64P("amount_greater_equal", "age", iq.AmountGE, "Amount greater or equals to")
-	searchCmd.Flags().Float64P("amount_lower_equal", "ale", iq.AmountLE, "Amount lower or equals to")
+	searchCmd.Flags().Float64P("amount_greater_equal", "g", iq.AmountGE, "Amount greater or equals to")
+	searchCmd.Flags().Float64P("amount_lower_equal", "l", iq.AmountLE, "Amount lower or equals to")
 
 }
 
