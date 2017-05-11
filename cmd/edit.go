@@ -17,10 +17,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	gv "gitlab.com/almost_cc/govoice/invoice"
-	"github.com/skratchdot/open-golang/open"
 )
 
 // editCmd represents the edit command
@@ -41,11 +41,9 @@ govoice edit -a "Sublime Text"  // uses Sublime Text to open the master descript
 func init() {
 	RootCmd.AddCommand(editCmd)
 
-
 	editCmd.Flags().StringP("app", "a", "", "open master using the specifica application")
 
 }
-
 
 func edit(cmd *cobra.Command, args []string) {
 
@@ -54,20 +52,19 @@ func edit(cmd *cobra.Command, args []string) {
 	// load configuration
 	viper.Unmarshal(&c)
 	// get the master path
-	mp,e := c.GetMasterPath()
+	mp, e := c.GetMasterPath()
 	if !e {
 		fmt.Println("master path at ", mp, "does not exists! run govoice config to restore it")
 	}
 
-
-	app,_ := cmd.Flags().GetString("app")
-	if app == ""{
+	app, _ := cmd.Flags().GetString("app")
+	if app == "" {
 		err = open.Run(mp)
 	} else {
 		err = open.RunWith(mp, app)
 	}
 
-	if err != nil{
+	if err != nil {
 		fmt.Println("error opening master descriptor", err)
 		return
 	}

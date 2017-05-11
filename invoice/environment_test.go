@@ -1,15 +1,14 @@
 package invoice
 
 import (
+	"math/rand"
 	"os"
 	"path"
 	"testing"
-	"math/rand"
 )
 
-
 //makeTmpHome create a random tmp home to execute tests to prevent race conditions.
-func makeTmpHome()(string,string){
+func makeTmpHome() (string, string) {
 	var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]byte, 10)
 	for i := range b {
@@ -19,7 +18,7 @@ func makeTmpHome()(string,string){
 	tmpHome := path.Join(os.TempDir(), "govoice", u1)
 	tmpWorkspace := path.Join(tmpHome, "workspace")
 	os.Setenv("HOME", tmpHome)
-	return tmpHome,tmpWorkspace
+	return tmpHome, tmpWorkspace
 }
 
 func TestWorkspacePaths(t *testing.T) {

@@ -112,7 +112,6 @@ func invoices() []Invoice {
 	return invoices
 }
 
-
 func TestSearchInvoice(t *testing.T) {
 	tmpHome, tmpWorkspace := makeTmpHome()
 	defer os.RemoveAll(tmpHome)

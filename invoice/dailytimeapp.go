@@ -7,6 +7,13 @@ import (
 	"os/exec"
 )
 
+var dailyTimeAppItem []struct {
+	Activity       string  `json:"activity"`
+	DurationString string  `json:"durationString"`
+	Percentage     float64 `json:"percentage"`
+	Duration       int     `json:"duration"`
+}
+
 func scanItemsFromDaily(i *Invoice) {
 	dailyExportCommand := fmt.Sprintf(`tell application "Daily" to print json with report "summary" from (date("%s")) to (date("%s"))`, i.Dailytime.DateFrom, i.Dailytime.DateTo)
 	//log.Println(dailyExportCommand)
@@ -17,12 +24,6 @@ func scanItemsFromDaily(i *Invoice) {
 	}
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
-	}
-	var dailyTimeAppItem []struct {
-		Activity       string  `json:"activity"`
-		DurationString string  `json:"durationString"`
-		Percentage     float64 `json:"percentage"`
-		Duration       int     `json:"duration"`
 	}
 
 	if err := json.NewDecoder(stdout).Decode(&dailyTimeAppItem); err != nil {
