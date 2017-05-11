@@ -87,10 +87,120 @@ Security considerations
 to encrypt the invoices ([this implementation](https://golang.org/src/crypto/cipher/example_test.go)), using 
 key of 32 bytes.  
 
+[TODO how can I decrypt the info without govoice?]
+
 Invoice descriptor 
 ============
 
-[todo sample with explanation]
+The invoice descriptor contains the details of each invoice. Usually the first time you will have 
+to insert your data and the invoice settings, after that usually what needs to be updated each time is:
+
+- the invoice number `json:{invoice.number}`
+- the invoice date `json:{invoice.date}`
+- the invoice due `json:{invoice.due}`
+- the customer data `json:{to.*}`
+- the billed items `json:{items.*}`
+
+here there is the full format of the invoice descriptor:
+
+```
+{
+  # this section is for the invoce sender 
+  "from": {
+    "name": "My Name",  
+    "address": "My Address",
+    "city": "My City",
+    "area_code": "My Post Code",
+    "country": "My Country",
+    "tax_id": "My Tax ID",
+    "vat_number": "My VAT Number",
+    "email": "My Email"
+  },
+  # this section is for the customer being invoiced 
+  "to": {
+    "name": "Customer Name",       <--- this field is indexed for search     
+    "address": "Customer Address",
+    "city": "Customer City",
+    "area_code": "Customer Post Code",
+    "country": "Customer Country",
+    "tax_id": "Customre Tax ID",
+    "vat_number": "Customer VAT number",
+    "email": "Customer Email"
+  },
+  # here there are the bank account details for the payment
+  "payment_details": {
+    "account_holder": "My Name",
+    "account_bank": "My Bank Name",
+    "account_iban": "My IBAN",
+    "account_bic": "My BIC/SWIFT"
+  },
+  # here is the invoice data 
+  "invoice": {
+    "number": "0000000",           <--- this is used to generate the invoice file name (string)
+    "date": "01.01.2017",          <--- date of the invoice, it is indexed for search
+    "due": "01.02.2017"            <--- date of payment due
+  },
+  # general settings for the invoice
+  "settings": {
+    "items_price": 45,             <--- default price of items 
+    "items_quantity_symbol": "",   <--- quantity symbol for items (for example h)
+    "vat_rate": 19,                <--- vat rate (as percentage)
+    "currency_symbol": "€",        <--- currency symbol to use in pdf
+    "lang": "en",                  <--- this is used to select the i18n template (en = .govoice/i18n/en.toml) 
+    "date_format": "%d.%m.%y"      <--- this is the format of the date of {invoice.date} if not empty overrides the default (see main configuration)
+  },
+  # this section is to configure dailytimeapp integration
+  "dailytime": {                   
+    "enabled": false,              <--- enable/disable integration 
+    "date_from": "",               <--- date range from of export (beginning) the format is system dependent 
+    "date_to": "",                 <--- date range to of export (end) the format is system dependent
+    "projects": null               
+  },
+  # list of items of the invoices 
+  "items": [
+    {
+      "description": "item 1 description",  <--- description of the activity/product
+      "quantity": 10                        <--- how much of this item are billed 
+    },
+    {
+      "description": "web development",     <--- description of the activity/product
+      "quantity": 5,                        <--- how much of this item are billed
+      "price": 60,                          <--- [OPTIONAL] overrides {settings.items_price} for this item
+      "quantity_symbol" : "pieces"          <--- [OPTIONAL] overrides {settings.items_quantity_symbol} for this item
+    }
+  ],
+  # list of notes to append to the invoice
+  "notes": [
+    "first note",
+    "second note"
+  ]
+}
+
+```
+
+#### DailyTimeApp integration
+DailyTimeApp is a nice time tracking application for mac that allows to export data in via scripting,
+_govoice_ can export the activities from daily to the invoice. When the invoice will be rendered and 
+archived, the dailytime integration is disabled and the items are explicitly listed in the invoice descriptor. 
+
+Here is an example to enable dailytimeapp integration:
+```
+...
+"dailytime": {                   
+    "enabled": true,              <--- enable/disable integration
+    "date_from": "20/01/2017",    <--- date range from of export (beginning) the format is system dependent 
+    "date_to": "31/12/2017",      <--- date range to of export (end) the format is system dependent
+    "projects": [
+      { 
+        "name" : "projectX-dev",                   <--- name of the dailytimeapp activity 
+        "item_description" : "website development" <--- item description to use for the activity in the invoice
+        "item_price"                               <--- [OPTIONAL] overrides {settings.items_price} for this item
+      }
+    ]
+  },
+...
+```
+
 
 i18n templates
 ============
@@ -100,17 +210,51 @@ i18n templates
 Configuration
 ============
 
-[todo sample with explanation]
+The configuration file is by default stored in `$HOME/.govoice/config.toml`
+
+````
+dateInputFormat = "%d/%m/%y"    <--- default date format (can be overridden in invoice descriptor)
+masterTemplate = "_master"      <--- name of the master descriptor
+searchResultLimit = 50          <--- NOT USED
+workspace = "/tmp/govoice"      <--- workspace location (see govoice config --workspace) 
+````
+
+Commands & Usage
+============
+
+run `govoice help`to see available commands:
+ 
+```
+Usage:
+  govoice [command]
+
+Available Commands:
+  config      configure govoice
+  edit        edit the master descriptor using the system editor
+  help        Help about any command
+  index       (re)generate the searchable index of invoices
+  info        print information about paths (when you forget where they are)
+  render      render the master invoice in the workspace
+  restore     restore a generated (and ecrypted) invoice descriptor to the master descriptor for editing
+  search      query the index to search for invoices
+
+Flags:
+  -h, --help   help for govoice
+```
+
+
  
 Downloads
 ============
 
-*govoice* is available for:
-- [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-linux)
-- [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-mac)
-- [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-windows)
+*govoice* is available for windows/mac/linux (amd64).
 
-all builds are for amd64
+
+##### stable-v0.1.0: [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-linux) / [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-mac) / [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-windows)
+
+##### latest-master: [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-linux) / [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-mac) / [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-windows)
+
+
  
 Known issues
 ============

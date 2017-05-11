@@ -1,4 +1,11 @@
-# CHANGELOG
+# GOVOICE CHANGELOG
 
-v.00
-base program
+v0.1.0
+======
++ render invoices pdf 
++ encrypt invoices data after rendering
++ search for invoices
+
+ 
+ 
+ 
