@@ -35,6 +35,30 @@ type InvoiceQuery struct {
 	DateTo   time.Time
 }
 
+func (q *InvoiceQuery) String() string {
+	var f []string
+	if q.Customer != QUERY_DEFAULT_CUSTOMER{
+		f = append(f, fmt.Sprint("customer like ",q.Customer))
+	}
+	ddf, _ := time.Parse(QUERY_DATE_FORMAT, QUERY_DEFAULT_DATE_FROM)
+	if !isSameDate(ddf, q.DateFrom) {
+		f = append(f, fmt.Sprint("date > ",q.DateFrom.Format(QUERY_DATE_FORMAT)))
+
+	}
+	if !isSameDate(time.Now(), q.DateTo) {
+		f = append(f, fmt.Sprint("date > ",q.DateFrom.Format(QUERY_DATE_FORMAT)))
+	}
+	// add range on amount if necessary
+	if q.AmountGE != QUERY_DEFAULT_AMOUNT_GE {
+		f = append(f, fmt.Sprint("amount > ",q.AmountGE))
+	}
+	// add range on amount if necessary
+	if q.AmountLE != QUERY_DEFAULT_AMOUNT_LE {
+		f = append(f, fmt.Sprint("amount < ",q.AmountLE))
+	}
+	return strings.Join(f, " and ")
+}
+
 //InvoiceQuery is the object indexed by bleve
 type InvoiceEntry struct {
 	Number   string

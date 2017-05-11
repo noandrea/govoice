@@ -62,7 +62,7 @@ func init() {
 
 	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01")
 	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(gv.QUERY_DATE_FORMAT), "date range to (default today)")
-	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (date_from and date_to have precedence over this parameter)")
+	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (has precedence over date ranges)")
 	searchCmd.Flags().Float64P("amount_greater_equal", "g", iq.AmountGE, "Amount greater or equals to")
 	searchCmd.Flags().Float64P("amount_lower_equal", "l", iq.AmountLE, "Amount lower or equals to")
 
@@ -86,13 +86,6 @@ func search(cmd *cobra.Command, args []string) {
 	iq.AmountLE, _ = cmd.Flags().GetFloat64("amount_lower_equal")
 	iq.AmountGE, _ = cmd.Flags().GetFloat64("amount_greater_equal")
 
-	// get the months range
-	m, _ := cmd.Flags().GetInt("months")
-	if m > 0 {
-		df := time.Now().AddDate(0, m*-1, 0)
-		iq.DateFrom = df
-	}
-
 	// get the date_from/date_to range
 	df, _ := cmd.Flags().GetString("date_from")
 	if iq.DateFrom, err = time.Parse("2006-01-02", df); err != nil {
@@ -102,6 +95,13 @@ func search(cmd *cobra.Command, args []string) {
 	dt, _ := cmd.Flags().GetString("date_to")
 	if iq.DateTo, err = time.Parse("2006-01-02", dt); err != nil {
 		fmt.Println("unrecognized date", dt)
+	}
+
+	// get the months range
+	m, _ := cmd.Flags().GetInt("months")
+	if m > 0 {
+		df := time.Now().AddDate(0, m*-1, 0)
+		iq.DateFrom = df
 	}
 
 	entries, total, elapsed, err := gv.SearchInvoice(iq)
@@ -119,6 +119,7 @@ func search(cmd *cobra.Command, args []string) {
 	// for amount formatting
 	ac := accounting.Accounting{Symbol: "€", Precision: 2}
 
+	fmt.Println("query:", iq.String())
 	fmt.Println("found", total, "results in", elapsed)
 
 	for _, e := range entries {
