@@ -59,6 +59,13 @@ func restore(cmd *cobra.Command, args []string) {
 
 	invoiceNumber := args[0]
 
+	// if the invoice does not exists stop it
+	_,e := c.GetInvoiceJsonPath(invoiceNumber)
+	if !e {
+		fmt.Println("invoice ",invoiceNumber,"does not exist in workspace")
+		return
+	}
+
 	// read user password for decrypt
 	password, err := gv.ReadUserPassword("Enter password:")
 	if err != nil {
