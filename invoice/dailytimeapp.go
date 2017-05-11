@@ -37,7 +37,7 @@ func scanItemsFromDaily(i *Invoice) {
 		//log.Println(di.Activity, " - ", seconds2hours(&di.Duration), " (", di.DurationString, ")")
 		for _, pr := range i.Dailytime.Projects {
 			if pr.Name == di.Activity {
-				i.PushItem(pr.ItemDescription, seconds2hours(&di.Duration), pr.ItemPrice)
+				i.PushItem(pr.ItemDescription, seconds2hours(&di.Duration), pr.ItemPrice, "")
 			}
 		}
 	}

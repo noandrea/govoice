@@ -26,7 +26,7 @@ import (
 // renderCmd represents the render command
 var renderCmd = &cobra.Command{
 	Use:   "render",
-	Short: "render the master invoice to the target directory",
+	Short: "render the master invoice in the workspace",
 	Long: `
 Render the invoice master in pdf in the workspace directory. It also create
 a encrypted version of the invoice data`,
@@ -54,7 +54,7 @@ func render(cmd *cobra.Command, args []string) {
 	if invoiceNumber, err := gv.RenderInvoice(&c, password); err == gv.InvoiceDescriptorExists {
 		fmt.Println("ok, nothing to do")
 	} else if err != nil {
-		fmt.Println(err)
+		fmt.Println("error rendering invoice:", err)
 	} else {
 		path, _ := c.GetInvoicePdfPath(invoiceNumber)
 		fmt.Println("rendered invoice number", invoiceNumber, "at", path)

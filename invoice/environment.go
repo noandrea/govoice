@@ -10,7 +10,7 @@ import (
 type Config struct {
 	Workspace         string `toml:"workspace"`
 	SearchResultLimit int    `toml:"searchResultLimit"`
-	MasterTemplate    string `toml:"masterTemplate"`
+	MasterDescriptor  string `toml:"masterDescriptor"`
 	DateInputFormat   string `toml:"dateInputFormat"`
 	Layout            Layout `toml:"layout"`
 }
@@ -54,7 +54,7 @@ type Style struct {
 
 func (c *Config) GetMasterPath() (string, bool) {
 
-	dp := path.Join(c.Workspace, fmt.Sprintf("%s.json", c.MasterTemplate))
+	dp := path.Join(c.Workspace, fmt.Sprintf("%s.json", c.MasterDescriptor))
 	if _, err := os.Stat(dp); os.IsNotExist(err) {
 		return dp, false
 	}
@@ -146,7 +146,7 @@ func Setup(workspace string) (string, string, error) {
 	// create configuration with defaults
 	c := Config{
 		Workspace:         workspace,
-		MasterTemplate:    "_master",
+		MasterDescriptor:  "_master",
 		DateInputFormat:   "%d/%m/%y",
 		SearchResultLimit: 50,
 		Layout: Layout{
@@ -207,13 +207,13 @@ func Setup(workspace string) (string, string, error) {
 	// don't overwrite the master if already exists
 	if !exists {
 		master := Invoice{
-			From:           Recipient{"Mathis Hecht", "880 Whispering Half", "Hamburg", "67059", "Deutschland", "9999999", "DE99999999999", "mh@ex.com"},
-			To:             Recipient{"Encarnicion Tellez Nino", "Calle Burch No. 139", "Valencia", "19490", "España", "55555555", "ES55555555", "etn@bs.com"},
-			PaymentDetails: BankCoordinates{"Mathis Hecht", "B Bank", "DE 1111 1111 1111 1111 11", "XXXXXXXX"},
+			From:           Recipient{"My Name", "My Address", "My City", "My Post Code", "My Country", "My Tax ID", "My VAT Number", "My Email"},
+			To:             Recipient{"Customer Name", "Customer Address", "Customer City", "Customer Post Code", "Customer Country", "Customre Tax ID", "Customer VAT number", "Customer Email"},
+			PaymentDetails: BankCoordinates{"My Name", "My Bank Name", "My IBAN", "My BIC/SWIFT"},
 			Invoice:        InvoiceData{"0000000", "01.01.2017", "01.02.2017"},
-			Settings:       InvoiceSettings{45, 19, "€", "", "en", ""},
+			Settings:       InvoiceSettings{45, "", 19, "€", "en", ""},
 			Dailytime:      Daily{Enabled: false},
-			Items:          &[]Item{Item{"web dev", 10, 0}, Item{"training", 5, 60}},
+			Items:          &[]Item{Item{"item 1 description", 10, 0, ""}, Item{"item 2 description", 5, 60, ""}},
 			Notes:          []string{"first note", "second note"},
 		}
 		err = writeJsonToFile(masterPath, master)

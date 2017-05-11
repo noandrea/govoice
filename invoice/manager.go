@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"strconv"
 	"strings"
 )
 
@@ -25,8 +26,8 @@ type Invoice struct {
 }
 
 // PushItem push an item to the list of the items of the invoice
-func (i *Invoice) PushItem(description string, quantity, price float64) {
-	*i.Items = append(*i.Items, Item{description, quantity, price})
+func (i *Invoice) PushItem(description string, quantity, price float64, quantitySymbol string) {
+	*i.Items = append(*i.Items, Item{description, quantity, price, quantitySymbol})
 }
 
 // DisableExtensions disable the extensions of the invoices
@@ -40,7 +41,7 @@ func (i *Invoice) DisableExtensions() {
 func (i *Invoice) GetTotals() (float64, float64) {
 	subtotal := 0.0
 	for _, it := range *i.Items {
-		_, itemCost := it.GetCost(&i.Settings.BaseItemPrice)
+		_, itemCost := it.GetCost(&i.Settings.ItemsPrice)
 		subtotal += itemCost
 	}
 	total := subtotal
@@ -64,12 +65,12 @@ type DailyProject struct {
 }
 
 type InvoiceSettings struct {
-	BaseItemPrice   float64 `json:"base_item_price"`
-	VatRate         float64 `json:"vat_rate"`
-	CurrencySymbol  string  `json:"currency_symbol"`
-	QuantitySymbol  string  `json:"quantity_symbol"`
-	Language        string  `json:"lang"`
-	DateInputFormat string  `json:"date_format",omitempty`
+	ItemsPrice          float64 `json:"items_price"`
+	ItemsQuantitySymbol string  `json:"items_quantity_symbol"`
+	VatRate             float64 `json:"vat_rate"`
+	CurrencySymbol      string  `json:"currency_symbol"`
+	Language            string  `json:"lang"`
+	DateInputFormat     string  `json:"date_format",omitempty`
 }
 
 type InvoiceData struct {
@@ -97,18 +98,33 @@ type Recipient struct {
 }
 
 type Item struct {
-	Description string  `json:"description"`
-	Quantity    float64 `json:"quantity"`
-	ItemPrice   float64 `json:"item_price,omitempty"`
+	Description    string  `json:"description"`
+	Quantity       float64 `json:"quantity"`
+	Price          float64 `json:"price,omitempty"`
+	QuantitySymbol string  `json:"quantity_symbol,omitempty"`
 }
 
 //GetCost return the cost of an item, that is the ItemPrice multiplied the ItemQuantity.
 //if the ItemPrice of the item is 0 then the global item price will be used
 func (i *Item) GetCost(basePrice *float64) (float64, float64) {
-	if i.ItemPrice > 0 {
-		return i.ItemPrice, i.ItemPrice * i.Quantity
+	if i.Price > 0 {
+		return i.Price, i.Price * i.Quantity
 	}
 	return *basePrice, *basePrice * i.Quantity
+}
+
+// FormatQuantity with a qunatity symbol if present
+func (i *Item) FormatQuantity(quantitySymbol string) string {
+	qt := strconv.FormatFloat(i.Quantity, 'f', 2, 64)
+
+	if i.QuantitySymbol != "" {
+		quantitySymbol = i.QuantitySymbol
+	}
+
+	if quantitySymbol != "" {
+		qt = fmt.Sprintf("%s %s", qt, i.QuantitySymbol)
+	}
+	return qt
 }
 
 //RenderInvoice render the master descriptor to a pdf file and create the encrypted descriptor of the invoice.
@@ -123,7 +139,10 @@ func RenderInvoice(c *Config, password string) (string, error) {
 
 	// read the master descriptor
 	var i Invoice
-	readInvoiceDescriptor(&descriptorPath, &i)
+	err := readInvoiceDescriptor(&descriptorPath, &i)
+	if err != nil {
+		return "", err
+	}
 
 	// load translations
 	i18n.MustLoadTranslationFile(GetI18nTranslationPath(i.Settings.Language))
@@ -140,7 +159,6 @@ func RenderInvoice(c *Config, password string) (string, error) {
 	// if the de
 	if descrExists {
 		reply := ReadUserInput(fmt.Sprint("invoice ", i.Invoice.Number, " already exists, overwrite? [yes/no] yes"))
-		// if
 		if reply != "" && reply != "yes" {
 			return "", InvoiceDescriptorExists
 		}

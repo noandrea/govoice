@@ -33,7 +33,10 @@ func readInvoiceDescriptor(path *string, i *Invoice) error {
 	if err != nil {
 		return err
 	}
-	json.Unmarshal(rawJsonDescriptor, &i)
+	err = json.Unmarshal(rawJsonDescriptor, &i)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
