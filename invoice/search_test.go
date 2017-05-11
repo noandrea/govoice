@@ -97,9 +97,9 @@ func invoices() []Invoice {
 			To:             to,
 			PaymentDetails: BankCoordinates{"Mathis Hecht", "B Bank", "DE 1111 1111 1111 1111 11", "XXXXXXXX"},
 			Invoice:        invd,
-			Settings:       InvoiceSettings{45, 19, "€", "", "en", "%y-%m-%d"},
+			Settings:       InvoiceSettings{45, "", 19, "€", "en", "%y-%m-%d"},
 			Dailytime:      Daily{Enabled: false},
-			Items:          &[]Item{Item{"web dev", float64(1 * countdown), 0}, Item{"training", float64(2 * countdown), 5}},
+			Items:          &[]Item{Item{"web dev", float64(1 * countdown), 0, ""}, Item{"training", float64(2 * countdown), 5, ""}},
 			Notes:          []string{"first note", "second note"},
 		}
 		invoices = append(invoices, i)
@@ -128,7 +128,7 @@ func TestSearchInvoice(t *testing.T) {
 
 	c := Config{
 		Workspace:      tmpWorkspace,
-		MasterTemplate: "_master",
+		MasterDescriptor: "_master",
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
 			Items:    Block{Coords{-1, 100}},
@@ -171,7 +171,7 @@ func TestRebuildSearchIndex(t *testing.T) {
 
 	c := Config{
 		Workspace:      tmpWorkspace,
-		MasterTemplate: "_master",
+		MasterDescriptor: "_master",
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
 			Items:    Block{Coords{-1, 100}},
