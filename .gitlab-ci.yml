@@ -26,8 +26,11 @@ format:
         - go tool vet -composites=false -shadow=true *.go
         - go test -cover $(go list ./... | grep -v /vendor/)
 
-build:mac:
+build-mac:
     stage: build
+    only:
+      - master
+      - tags
     script:
         # Add here all the dependencies, or use glide/govendor/...
         # to get them automatically.
@@ -36,15 +39,18 @@ build:mac:
         - go get github.com/alecthomas/kingpin
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
-        - gox -osarch="darwin/amd64" -output="build/{{.Arch}}/{{.OS}}/{{.Dir}}"
+        - gox -osarch="darwin/amd64" -output="bin/{{.Dir}}"
     artifacts:
         paths:
-            - build/amd64/darwin/govoice
+            - bin/govoice
             - README.md
         name: "${CI_PROJECT_NAME}_mac_${CI_COMMIT_REF_SLUG}"
 
-build:linux:
+build-linux:
     stage: build
+    only:
+      - master
+      - tags
     script:
         # Add here all the dependencies, or use glide/govendor/...
         # to get them automatically.
@@ -53,15 +59,18 @@ build:linux:
         - go get github.com/alecthomas/kingpin
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
-        - gox -osarch="linux/amd64" -output="build/{{.Arch}}/{{.OS}}/{{.Dir}}"
+        - gox -osarch="linux/amd64" -output="bin/{{.Dir}}"
     artifacts:
         paths:
-            - build/amd64/windows/govoice
+            - bin/govoice
             - README.md
         name: "${CI_PROJECT_NAME}_linux_${CI_COMMIT_REF_SLUG}"
 
-build:windows:
+build-windows:
     stage: build
+    only:
+      - master
+      - tags
     script:
         # Add here all the dependencies, or use glide/govendor/...
         # to get them automatically.
@@ -70,9 +79,9 @@ build:windows:
         - go get github.com/alecthomas/kingpin
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
-        - gox -osarch="windows/amd64" -output="build/{{.Arch}}/{{.OS}}/{{.Dir}}"
+        - gox -osarch="windows/amd64" -output="bin/{{.Dir}}"
     artifacts:
         paths:
-            - build/amd64/windows/govoice.exe
+            - bin/govoice.exe
             - README.md
         name: "${CI_PROJECT_NAME}_windows_${CI_COMMIT_REF_SLUG}"

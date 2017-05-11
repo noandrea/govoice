@@ -279,6 +279,10 @@
 			"Rev": "fe206efb84b2bc8e8cfafe6b4c1826622be969e3"
 		},
 		{
+			"ImportPath": "github.com/skratchdot/open-golang/open",
+			"Rev": "75fb7ed4208cf72d323d7d02fd1a5964a7a9073c"
+		},
+		{
 			"ImportPath": "github.com/spf13/afero",
 			"Rev": "9be650865eab0c12963d8753212f4f9c66cdcf12"
 		},
