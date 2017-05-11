@@ -106,7 +106,7 @@ func ReadUserPassword(message string) (string, error) {
 
 func ReadUserInput(message string) string {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println(message)
+	fmt.Print(message + ": ")
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
 }

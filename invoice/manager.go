@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+//Errors
+var InvoiceDescriptorExists = errors.New("Invoice descriptor already exists")
+
 //============== INVOICE ================
 
 //Invoice contains all the information to generate an invoice
@@ -131,14 +134,15 @@ func RenderInvoice(c *Config, password string) (string, error) {
 		scanItemsFromDaily(&i)
 	}
 	// render pdf
-	pdfPath, pdfExists := c.GetInvoicePdfPath(i.Invoice.Number)
-	jsonEncPath, jsonExists := c.GetInvoiceJsonPath(i.Invoice.Number)
+	pdfPath, _ := c.GetInvoicePdfPath(i.Invoice.Number)
+	descrPath, descrExists := c.GetInvoiceJsonPath(i.Invoice.Number)
 
-	//todo this should be handled better
-	if pdfExists || jsonExists {
+	// if the de
+	if descrExists {
 		reply := ReadUserInput(fmt.Sprint("invoice ", i.Invoice.Number, " already exists, overwrite? [yes/no] yes"))
+		// if
 		if reply != "" && reply != "yes" {
-			return "", nil
+			return "", InvoiceDescriptorExists
 		}
 	}
 
@@ -154,13 +158,13 @@ func RenderInvoice(c *Config, password string) (string, error) {
 		i.Settings.DateInputFormat = c.DateInputFormat
 	}
 
-	writeInvoiceDescriptorEncrypted(&i, &jsonEncPath, &password)
+	writeInvoiceDescriptorEncrypted(&i, &descrPath, &password)
 	// add invoice to the index
 	if err := addToSearchIndex(c, &i); err != nil {
 		return i.Invoice.Number, err
 	}
 
-	fmt.Println("encrypted descriptor created at", jsonEncPath)
+	fmt.Println("encrypted descriptor created at", descrPath)
 	fmt.Println("pdf created at", pdfPath)
 
 	return i.Invoice.Number, nil

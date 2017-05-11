@@ -20,6 +20,7 @@ import (
 	gv "gitlab.com/almost_cc/govoice/invoice"
 
 	"fmt"
+	"github.com/skratchdot/open-golang/open"
 )
 
 // renderCmd represents the render command
@@ -48,12 +49,16 @@ func render(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
+
 	// render invoice
-	invoiceNumber, err := gv.RenderInvoice(&c, password)
-	if err != nil {
+	if invoiceNumber, err := gv.RenderInvoice(&c, password); err == gv.InvoiceDescriptorExists {
+		fmt.Println("ok, nothing to do")
+	} else if err != nil {
 		fmt.Println(err)
-		return
+	} else {
+		path, _ := c.GetInvoicePdfPath(invoiceNumber)
+		fmt.Println("rendered invoice number", invoiceNumber, "at", path)
+		open.Run(path)
 	}
-	path, _ := c.GetInvoicePdfPath(invoiceNumber)
-	fmt.Println("rendered invoice number", invoiceNumber, "\n", path)
+
 }
