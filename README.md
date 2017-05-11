@@ -3,6 +3,13 @@ A tool to create/render/search/archive invoices from command line
 
 ![Imgur](http://i.imgur.com/khOrNjzb.png?1) 
 
+------
+[Downloads](#downloads) | [Installation](#installation) | [Workflow](#workflow)
+ 
+------
+
+
+
 Motivations
 ============
  
@@ -50,8 +57,9 @@ and can be used on windows/linux/mac
 Workflow
 ============
 
-the common workflow for *govoice* is to **edit the master descriptor with the invoice data**,
-once done, **run the command ```govoice render```** that will generate the pdf and an encrypted 
+the common workflow for *govoice* is to **edit the master descriptor with the invoice data**, 
+this can be done **by running  the command ```govoice edit```**. 
+Once your are done, **then run the command ```govoice render```** that will generate the pdf and an encrypted 
 copy of the master descriptor in the workspace folder. That's it.
 
 ### Using GIT to archive/backup invoices
