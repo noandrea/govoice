@@ -60,5 +60,4 @@ func render(cmd *cobra.Command, args []string) {
 		fmt.Println("rendered invoice number", invoiceNumber, "at", path)
 		open.Run(path)
 	}
-
 }

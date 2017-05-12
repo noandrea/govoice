@@ -121,7 +121,9 @@ func search(cmd *cobra.Command, args []string) {
 
 	fmt.Println("query:", iq.String())
 	fmt.Println("found", total, "results in", elapsed)
-
+	if total == 0 {
+		return
+	}
 	for _, e := range entries {
 		path, _ := c.GetInvoicePdfPath(e.Number)
 		table.Append([]string{

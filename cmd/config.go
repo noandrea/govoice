@@ -19,6 +19,8 @@ import (
 
 	"github.com/spf13/cobra"
 	gv "gitlab.com/almost_cc/govoice/invoice"
+	"os"
+	"path"
 )
 
 // configCmd represents the config command
@@ -37,7 +39,7 @@ func init() {
 	defaultWorkspace := gv.GetConfigHome()
 
 	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
+	// and all sub-commands, e.g.:
 	configCmd.PersistentFlags().String("workspace", defaultWorkspace, "set the workspace of govoice, default to "+defaultWorkspace)
 
 	// Cobra supports local flags which will only run when this command
@@ -49,6 +51,9 @@ func init() {
 func config(cmd *cobra.Command, args []string) {
 
 	workspace, _ := cmd.LocalFlags().GetString("workspace")
+	if workspace == "" {
+		workspace = path.Join(os.Getenv("HOME"), "GOVOICE")
+	}
 
 	cp, mp, err := gv.Setup(workspace)
 	if err != nil {

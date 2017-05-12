@@ -127,7 +127,7 @@ func TestSearchInvoice(t *testing.T) {
 	t.Log(cfp, mp)
 
 	c := Config{
-		Workspace:      tmpWorkspace,
+		Workspace:        tmpWorkspace,
 		MasterDescriptor: "_master",
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
@@ -170,7 +170,7 @@ func TestRebuildSearchIndex(t *testing.T) {
 	t.Log(cfp, mp)
 
 	c := Config{
-		Workspace:      tmpWorkspace,
+		Workspace:        tmpWorkspace,
 		MasterDescriptor: "_master",
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},

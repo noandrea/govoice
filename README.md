@@ -46,7 +46,7 @@ Installation
 it does not require any 3rd party software or library
 and can be used on windows/linux/mac
 
-**step 1.** download the binary for your system: [TODO link to binaries]
+**step 1.** [download](#downloads) the binary for your system 
 
 **step 2.** move the executable somewhere in your $PATH (ex. /usr/local/bin)
 
@@ -73,7 +73,37 @@ An example, using git, of ```.gitignore``` in the workspace is:
 
 ### Searching for invoices
 Every time an invoice is rendered it is indexed in a local full text search index. 
-To search for an invoice the command ```govoice search ...``` can be used. 
+To search for an invoice the command ```govoice search ...``` can be used.
+ 
+here is the help for the search command:
+
+```javascript
+
+the indexing is made on the fields:
+- Customer: customer name
+- Date: invoice date
+- Number: invoice number
+- Amount: invoice subtotal
+
+examples of queries are
+
+govoice search "Amount:>1000" // search for invoices with amount greather than 1000
+govoice search wolskwagen  // full text search on all field for wolkswagen
+
+the full text search is provided by bleve, visit the bleve documentation for query examples
+
+Usage:
+  govoice search QUERY [flags]
+
+Flags:
+  -g, --amount_greater_equal float   Amount greater or equals to
+  -l, --amount_lower_equal float     Amount lower or equals to (default 1e+12)
+  -f, --date_from string             date range from (default 1970-01-01 (default "1970-01-01")
+  -t, --date_to string               date range to (default today) (default "2017-05-12")
+  -h, --help                         help for search
+  -m, --months int                   months, now - $months range, (has precedence over date ranges)
+
+```
 
 ### Restore an invoice
 In case an invoice needs to be restored (for example for editing) the command ```govoice restore INVOICENUMBER``` 
@@ -194,7 +224,7 @@ Here is an example to enable dailytimeapp integration:
       { 
         "name" : "projectX-dev",                   <--- name of the dailytimeapp activity 
         "item_description" : "website development" <--- item description to use for the activity in the invoice
-        "item_price"                               <--- [OPTIONAL] overrides {settings.items_price} for this item
+        "item_price" : 10                          <--- [OPTIONAL] overrides {settings.items_price} for this item
       }
     ]
   },
@@ -250,16 +280,37 @@ Downloads
 *govoice* is available for windows/mac/linux (amd64).
 
 
-##### stable-v0.1.0: [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-linux) / [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-mac) / [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-windows)
+##### stable-v0.1.1: [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-linux) / [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.0/download?job=build-mac) / [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/v0.1.1/download?job=build-windows)
 
 ##### latest-master: [linux](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-linux) / [mac](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-mac) / [windows](https://gitlab.com/almost_cc/govoice/builds/artifacts/master/download?job=build-windows)
+
+FAQ
+============
+###### I do have recurrent customer, how can avoid re-entering the same infos?
+to avoid re-entering the same info for a customer, the suggested workflow is:
+
+1. `govoice edit`  and take note of the last invoice number
+2. `govoice search CUSTOMER`, copy the number of an existing invoice for a customer
+3. `govoice restore INVOICENUMBER`, restore the invoice found in step 2.
+4. `govoice edit`  edit the invoice, incrementing the number found at step 1. and inserting the new items
+5. `govoice render` render the new invoice
+
+###### I would like this and that
+
+try to open a issue :racehorse:
+
+Tips
+============
+- to avoid complications, use always the same password
+
 
 
  
 Known issues
 ============
 
-- the command line output for render doesn't print the currency codes correctly 
+- the command line output for render doesn't print the currency codes correctly
+ 
 
 CI
 ============

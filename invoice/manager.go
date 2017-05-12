@@ -183,7 +183,6 @@ func RenderInvoice(c *Config, password string) (string, error) {
 
 	writeInvoiceDescriptorEncrypted(&i, &descrPath, &password)
 
-
 	fmt.Println("encrypted descriptor created at", descrPath)
 	fmt.Println("pdf created at", pdfPath)
 

@@ -147,7 +147,7 @@ func Setup(workspace string) (string, string, error) {
 	c := Config{
 		Workspace:         workspace,
 		MasterDescriptor:  "_master",
-		DateInputFormat:   "%d/%m/%y",
+		DateInputFormat:   "%d.%m.%y",
 		SearchResultLimit: 50,
 		Layout: Layout{
 			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
@@ -210,7 +210,7 @@ func Setup(workspace string) (string, string, error) {
 			From:           Recipient{"My Name", "My Address", "My City", "My Post Code", "My Country", "My Tax ID", "My VAT Number", "My Email"},
 			To:             Recipient{"Customer Name", "Customer Address", "Customer City", "Customer Post Code", "Customer Country", "Customre Tax ID", "Customer VAT number", "Customer Email"},
 			PaymentDetails: BankCoordinates{"My Name", "My Bank Name", "My IBAN", "My BIC/SWIFT"},
-			Invoice:        InvoiceData{"0000000", "01.01.2017", "01.02.2017"},
+			Invoice:        InvoiceData{"0000000", "23.01.2017", "23.02.2017"},
 			Settings:       InvoiceSettings{45, "", 19, "€", "en", ""},
 			Dailytime:      Daily{Enabled: false},
 			Items:          &[]Item{Item{"item 1 description", 10, 0, ""}, Item{"item 2 description", 5, 60, ""}},
