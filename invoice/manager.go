@@ -152,9 +152,14 @@ func RenderInvoice(c *Config, password string) (string, error) {
 	if i.Dailytime.Enabled {
 		scanItemsFromDaily(&i)
 	}
-	// render pdf
+	// compute paths
 	pdfPath, _ := c.GetInvoicePdfPath(i.Invoice.Number)
 	descrPath, descrExists := c.GetInvoiceJsonPath(i.Invoice.Number)
+
+	// add invoice to the index
+	if err := addToSearchIndex(c, &i); err != nil {
+		return i.Invoice.Number, err
+	}
 
 	// if the de
 	if descrExists {
@@ -177,10 +182,7 @@ func RenderInvoice(c *Config, password string) (string, error) {
 	}
 
 	writeInvoiceDescriptorEncrypted(&i, &descrPath, &password)
-	// add invoice to the index
-	if err := addToSearchIndex(c, &i); err != nil {
-		return i.Invoice.Number, err
-	}
+
 
 	fmt.Println("encrypted descriptor created at", descrPath)
 	fmt.Println("pdf created at", pdfPath)
