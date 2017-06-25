@@ -6,6 +6,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 	"strconv"
 	"strings"
+	"math"
 )
 
 //Errors
@@ -105,17 +106,20 @@ type Item struct {
 }
 
 //GetCost return the cost of an item, that is the ItemPrice multiplied the ItemQuantity.
-//if the ItemPrice of the item is 0 then the global item price will be used
+//if the ItemPrice of the item is 0 then the global item price will be used.
+// The function also rounds the quantity to the next .5
 func (i *Item) GetCost(basePrice *float64) (float64, float64) {
+	qt := math.Ceil(i.Quantity * 2) / 2
 	if i.Price > 0 {
-		return i.Price, i.Price * i.Quantity
+		return i.Price, i.Price * qt
 	}
-	return *basePrice, *basePrice * i.Quantity
+	return *basePrice, *basePrice * qt
 }
 
-// FormatQuantity with a qunatity symbol if present
+// FormatQuantity with a quantity symbol if present. it also rounds the quantity to the next .5
 func (i *Item) FormatQuantity(quantitySymbol string) string {
-	qt := strconv.FormatFloat(i.Quantity, 'f', 2, 64)
+	adjQt := math.Ceil(i.Quantity * 2) / 2
+	qt := strconv.FormatFloat(adjQt, 'f', 2, 64)
 
 	if i.QuantitySymbol != "" {
 		quantitySymbol = i.QuantitySymbol
