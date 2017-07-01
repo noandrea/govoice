@@ -23,7 +23,6 @@ import (
 	gv "gitlab.com/almost_cc/govoice/invoice"
 )
 
-var cfgFile string
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
