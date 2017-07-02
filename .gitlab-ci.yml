@@ -40,8 +40,8 @@ build-mac:
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
         - gox -osarch="darwin/amd64" -output="bin/{{.Dir}}"
-    environment:
-        - GO_DARWIN_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
+    variables:
+        GO_DARWIN_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
     artifacts:
         paths:
             - bin/govoice
@@ -62,8 +62,8 @@ build-linux:
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
         - gox -osarch="linux/amd64" -output="bin/{{.Dir}}"
-    environment:
-        - GO_LINUX_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
+    variables:
+        GO_LINUX_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
     artifacts:
         paths:
             - bin/govoice
@@ -84,8 +84,8 @@ build-windows:
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
         - gox -osarch="windows/amd64" -output="bin/{{.Dir}}"
-    environment:
-        - GO_WINDOWS_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
+    variables:
+        GO_WINDOWS_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
     artifacts:
         paths:
             - bin/govoice.exe
