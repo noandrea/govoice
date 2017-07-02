@@ -19,7 +19,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var GovoiceVersion string
+var (
+	Version string
+	BuildRef string
+)
+
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
@@ -36,5 +40,5 @@ func init() {
 
 func printVersion(cmd *cobra.Command, args []string) {
 	// print the current version
-	fmt.Println("v", GovoiceVersion)
+	fmt.Println("version", Version, ", build", BuildRef)
 }

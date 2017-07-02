@@ -39,9 +39,9 @@ build-mac:
         - go get github.com/alecthomas/kingpin
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
-        - gox -verbose -osarch="darwin/amd64" -output="bin/{{.Dir}}"
+        - gox -osarch="darwin/amd64" -output="bin/{{.Dir}}"
     variables:
-        GO_darwin_amd64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
+        GOX_DARWIN_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.Version=${CI_COMMIT_REF_NAME} -X gitlab.com/almost_cc/govoice/cmd.BuildRef=${CI_COMMIT_REF_SLUG}"
     artifacts:
         paths:
             - bin/govoice
@@ -61,9 +61,9 @@ build-linux:
         - go get github.com/alecthomas/kingpin
         - go get github.com/mitchellh/gox
         # Better put this in a Makefile
-        - gox -verbose -osarch="linux/amd64" -output="bin/{{.Dir}}"
+        - gox -osarch="linux/amd64" -output="bin/{{.Dir}}"
     variables:
-        GO_linux_amd64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
+        GOX_LINUX_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.Version=${CI_COMMIT_REF_NAME} -X gitlab.com/almost_cc/govoice/cmd.BuildRef=${CI_COMMIT_REF_SLUG}"
     artifacts:
         paths:
             - bin/govoice
@@ -85,7 +85,7 @@ build-windows:
         # Better put this in a Makefile
         - gox -verbose -osarch="windows/amd64" -output="bin/{{.Dir}}"
     variables:
-        GO_windows_amd64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.GovoiceVersion=${CI_COMMIT_REF_NAME}"
+        GO_WINDOWS_AMD64_LDFLAGS: "-X gitlab.com/almost_cc/govoice/cmd.Version=${CI_COMMIT_REF_NAME} -X gitlab.com/almost_cc/govoice/cmd.BuildRef=${CI_COMMIT_REF_SLUG}"
     artifacts:
         paths:
             - bin/govoice.exe
