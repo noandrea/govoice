@@ -134,11 +134,11 @@ func RenderPDF(invoice *Invoice, layout *Layout, pdfPath *string, T i18n.Transla
 	for _, it := range *invoice.Items {
 		//log.Print(it)
 		c1v = utf8(it.Description)
-		c2v = utf8(it.FormatQuantity(invoice.Settings.ItemsQuantitySymbol))
+		c2v = utf8(it.FormatQuantity(invoice.Settings.ItemsQuantitySymbol, invoice.Settings.RoundQuantity))
 
 		// get the price and the cost of the item
 		// price can be global or per item
-		itemPrice, itemCost := it.GetCost(&invoice.Settings.ItemsPrice)
+		itemPrice, itemCost := it.GetCost(&invoice.Settings.ItemsPrice, &invoice.Settings.RoundQuantity)
 		// print column 3 and 4
 		c3v = ac.FormatMoney(itemPrice)
 		c4v = ac.FormatMoney(itemCost)
