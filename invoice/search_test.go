@@ -97,7 +97,7 @@ func invoices() []Invoice {
 			To:             to,
 			PaymentDetails: BankCoordinates{"Mathis Hecht", "B Bank", "DE 1111 1111 1111 1111 11", "XXXXXXXX"},
 			Invoice:        invd,
-			Settings:       InvoiceSettings{45, "", 19, "€", "en", "%y-%m-%d"},
+			Settings:       InvoiceSettings{45, "", 19, "€", "en", "%y-%m-%d", false},
 			Dailytime:      Daily{Enabled: false},
 			Items:          &[]Item{Item{"web dev", float64(1 * countdown), 0, ""}, Item{"training", float64(2 * countdown), 5, ""}},
 			Notes:          []string{"first note", "second note"},
