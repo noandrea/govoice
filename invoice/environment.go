@@ -211,7 +211,7 @@ func Setup(workspace string) (string, string, error) {
 			To:             Recipient{"Customer Name", "Customer Address", "Customer City", "Customer Post Code", "Customer Country", "Customre Tax ID", "Customer VAT number", "Customer Email"},
 			PaymentDetails: BankCoordinates{"My Name", "My Bank Name", "My IBAN", "My BIC/SWIFT"},
 			Invoice:        InvoiceData{"0000000", "23.01.2017", "23.02.2017"},
-			Settings:       InvoiceSettings{45, "", 19, "€", "en", ""},
+			Settings:       InvoiceSettings{45, "", 19, "€", "en", "", false},
 			Dailytime:      Daily{Enabled: false},
 			Items:          &[]Item{Item{"item 1 description", 10, 0, ""}, Item{"item 2 description", 5, 60, ""}},
 			Notes:          []string{"first note", "second note"},

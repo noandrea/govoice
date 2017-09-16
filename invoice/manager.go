@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"math"
 	"strconv"
 	"strings"
-	"math"
 )
 
 //Errors
@@ -42,7 +42,7 @@ func (i *Invoice) DisableExtensions() {
 func (i *Invoice) GetTotals() (float64, float64) {
 	subtotal := 0.0
 	for _, it := range *i.Items {
-		_, itemCost := it.GetCost(&i.Settings.ItemsPrice)
+		_, itemCost := it.GetCost(&i.Settings.ItemsPrice, &i.Settings.RoundQuantity)
 		subtotal += itemCost
 	}
 	total := subtotal
@@ -72,6 +72,7 @@ type InvoiceSettings struct {
 	CurrencySymbol      string  `json:"currency_symbol"`
 	Language            string  `json:"lang"`
 	DateInputFormat     string  `json:"date_format",omitempty`
+	RoundQuantity       bool    `json:"round_quantity",omitempty`
 }
 
 type InvoiceData struct {
@@ -107,9 +108,12 @@ type Item struct {
 
 //GetCost return the cost of an item, that is the ItemPrice multiplied the ItemQuantity.
 //if the ItemPrice of the item is 0 then the global item price will be used.
-// The function also rounds the quantity to the next .5
-func (i *Item) GetCost(basePrice *float64) (float64, float64) {
-	qt := math.Ceil(i.Quantity * 2) / 2
+// The function also rounds the quantity to the next .5 if it is specified in settings
+func (i *Item) GetCost(basePrice *float64, roundQuantity *bool) (unitCost, cost float64) {
+	qt := i.Quantity
+	if *roundQuantity {
+		qt = math.Ceil(i.Quantity*2) / 2
+	}
 	if i.Price > 0 {
 		return i.Price, i.Price * qt
 	}
@@ -117,8 +121,14 @@ func (i *Item) GetCost(basePrice *float64) (float64, float64) {
 }
 
 // FormatQuantity with a quantity symbol if present. it also rounds the quantity to the next .5
-func (i *Item) FormatQuantity(quantitySymbol string) string {
-	adjQt := math.Ceil(i.Quantity * 2) / 2
+// if it specified in the settings
+func (i *Item) FormatQuantity(quantitySymbol string, roundQuantity bool) string {
+
+	// round quantity only if is requested
+	adjQt := i.Quantity
+	if roundQuantity {
+		adjQt = math.Ceil(i.Quantity*2) / 2
+	}
 	qt := strconv.FormatFloat(adjQt, 'f', 2, 64)
 
 	if i.QuantitySymbol != "" {
