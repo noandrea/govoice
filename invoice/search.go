@@ -233,6 +233,7 @@ func SearchInvoice(q InvoiceQuery) (entries []InvoiceEntry, found uint64, elapse
 
 	search := bleve.NewSearchRequest(query)
 	search.Fields = []string{FIELD_NUMBER, FIELD_CUSTOMER, FIELD_AMOUNT, FIELD_DATE}
+	search.SortBy([]string{"-" + FIELD_DATE, FIELD_NUMBER})
 	search.Size = 50
 	results, err := index.Search(search)
 	if err != nil {
