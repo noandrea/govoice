@@ -60,7 +60,8 @@ func init() {
 	// is called directly, e.g.:
 	iq := gv.DefaultInvoiceQuery()
 
-	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01")
+	searchCmd.Flags().StringP("customer", "c", "", "search customer name only")
+	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01)")
 	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(gv.QUERY_DATE_FORMAT), "date range to (default today)")
 	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (has precedence over date ranges)")
 	searchCmd.Flags().Float64P("amount_greater_equal", "g", iq.AmountGE, "Amount greater or equals to")
@@ -80,8 +81,11 @@ func search(cmd *cobra.Command, args []string) {
 	iq := gv.DefaultInvoiceQuery()
 
 	if len(args) > 0 {
-		iq.Customer = strings.Join(args, " ")
+		iq.Text = strings.Join(args, " ")
 	}
+	// customer
+	iq.Customer, _ = cmd.Flags().GetString("customer")
+
 	// get the amount range
 	iq.AmountLE, _ = cmd.Flags().GetFloat64("amount_lower_equal")
 	iq.AmountGE, _ = cmd.Flags().GetFloat64("amount_greater_equal")
@@ -104,7 +108,7 @@ func search(cmd *cobra.Command, args []string) {
 		iq.DateFrom = df
 	}
 
-	entries, total, elapsed, err := gv.SearchInvoice(iq)
+	entries, total, elapsed, amount, err := gv.SearchInvoice(iq)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -113,9 +117,10 @@ func search(cmd *cobra.Command, args []string) {
 	// output results to console as a table
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetBorders(tablewriter.Border{Left: false, Top: false, Right: false, Bottom: false})
+	table.SetAutoWrapText(false)
 	table.SetCenterSeparator("|")
 	table.SetAutoFormatHeaders(false)
-	table.SetHeader([]string{"File", "Number", "Customer", "Date", "Amount"})
+	table.SetHeader([]string{"Number", "Customer", "Date", "Amount", "File"})
 	// for amount formatting
 	ac := accounting.Accounting{Symbol: "€", Precision: 2}
 
@@ -127,13 +132,14 @@ func search(cmd *cobra.Command, args []string) {
 	for _, e := range entries {
 		path, _ := c.GetInvoicePdfPath(e.Number)
 		table.Append([]string{
-			path,
 			e.Number,
 			e.Customer,
 			e.Date.Format(gv.QUERY_DATE_FORMAT),
 			ac.FormatMoney(e.Amount),
+			path,
 		})
 	}
+	table.Append([]string{"", "", "", ac.FormatMoney(amount), ""})
 	// render the output
 	table.Render()
 
