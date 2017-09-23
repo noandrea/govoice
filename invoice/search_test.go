@@ -209,6 +209,7 @@ func runQueries(t *testing.T) {
 	var expected, found uint64
 	var entries []InvoiceEntry
 	var elapsed time.Duration
+	var amount float64
 	var q InvoiceQuery
 	var err error
 
@@ -219,10 +220,10 @@ func runQueries(t *testing.T) {
 	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-10")
 
 	// 25, 25, xx, nil
-	entries, found, elapsed, err = SearchInvoice(q)
+	entries, found, elapsed, amount, err = SearchInvoice(q)
 	expected = 25
 
-	check(t, q, expected, entries, found, elapsed, err)
+	check(t, q, expected, entries, found, elapsed, amount, err)
 
 	// #####################  second search
 	q = DefaultInvoiceQuery()
@@ -232,8 +233,8 @@ func runQueries(t *testing.T) {
 	// 110, 110, xx, nil
 	expected = 111
 
-	entries, found, elapsed, err = SearchInvoice(q)
-	check(t, q, expected, entries, found, elapsed, err)
+	entries, found, elapsed, amount, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, amount, err)
 
 	// #####################  filter by amount
 	q = DefaultInvoiceQuery()
@@ -243,8 +244,8 @@ func runQueries(t *testing.T) {
 	// 18, 18, xx, nil
 	expected = 18
 
-	entries, found, elapsed, err = SearchInvoice(q)
-	check(t, q, expected, entries, found, elapsed, err)
+	entries, found, elapsed, amount, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, amount, err)
 
 	// #####################  filter by date and amount
 	q = DefaultInvoiceQuery()
@@ -256,8 +257,8 @@ func runQueries(t *testing.T) {
 	// 6, 6, xx, nil
 	expected = 6
 
-	entries, found, elapsed, err = SearchInvoice(q)
-	check(t, q, expected, entries, found, elapsed, err)
+	entries, found, elapsed, amount, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, amount, err)
 
 	// #####################  filter by date, amount, customer
 	q = DefaultInvoiceQuery()
@@ -270,11 +271,11 @@ func runQueries(t *testing.T) {
 	expected = 4
 
 	// 5, 5, xx, nil
-	entries, found, elapsed, err = SearchInvoice(q)
-	check(t, q, expected, entries, found, elapsed, err)
+	entries, found, elapsed, amount, err = SearchInvoice(q)
+	check(t, q, expected, entries, found, elapsed, amount, err)
 }
 
-func check(t *testing.T, q InvoiceQuery, expected uint64, entries []InvoiceEntry, found uint64, elapsed time.Duration, err error) {
+func check(t *testing.T, q InvoiceQuery, expected uint64, entries []InvoiceEntry, found uint64, elapsed time.Duration, amount float64, err error) {
 	t.Log("query", q)
 	t.Log("found", found, "entries in ", elapsed)
 	if err != nil {
