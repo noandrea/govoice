@@ -17,8 +17,7 @@ package cmd
 import (
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	gv "gitlab.com/almost_cc/govoice/invoice"
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 // openCmd represents the open command
@@ -45,9 +44,5 @@ func init() {
 }
 
 func doOpen(cmd *cobra.Command, args []string) {
-	// parse configuration
-	var c gv.Config
-	viper.Unmarshal(&c)
-
-	open.Run(c.Workspace)
+	open.Run(config.Main.Workspace)
 }

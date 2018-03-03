@@ -102,7 +102,7 @@ func search(cmd *cobra.Command, args []string) {
 		iq.DateFrom = df
 	}
 
-	entries, total, elapsed, amount, err := gv.SearchInvoice(iq)
+	entries, total, elapsed, amountTotal, err := gv.SearchInvoice(iq)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -120,10 +120,8 @@ func search(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	amountTotal := 0.0
 	for _, e := range entries {
 		path, _ := config.GetInvoicePdfPath(e.Number)
-		amountTotal += e.Amount
 		table.AddRow(
 			e.Number,
 			e.Customer,

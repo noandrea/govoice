@@ -56,5 +56,4 @@ func info(cmd *cobra.Command, args []string) {
 	table.AddRow("Master descriptor", mp)
 	helpers.RenderTable(table)
 	println()
-
 }

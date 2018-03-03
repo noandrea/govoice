@@ -68,8 +68,7 @@ func DefaultInvoiceQuery() InvoiceQuery {
 	df, _ := time.Parse(config.QueryDateFormat, config.QueryDefaultDateFrom)
 	return InvoiceQuery{
 		Customer: config.QueryDefaultCustomer,
-		// TODO: this has to be verified
-		// Text: 	config.QueryDefaultText,
+		Text:     config.QueryDefaultText,
 		AmountGE: float64(config.QueryDefaultAmountGE),
 		AmountLE: float64(config.QueryDefaultAmountLE),
 		DateFrom: df,

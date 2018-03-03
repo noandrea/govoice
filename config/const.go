@@ -28,4 +28,5 @@ const (
 	QueryDefaultAmountGE = float64(0)
 	QueryDefaultAmountLE = float64(1000000000000)
 	QueryDefaultCustomer = "none"
+	QueryDefaultText     = ""
 )
