@@ -21,6 +21,7 @@ const (
 	FieldCustomer = "Customer"
 	FieldAmount   = "Amount"
 	FieldDate     = "Date"
+	FieldText     = "Text"
 
 	QueryDateFormat      = "2006-01-02"
 	QueryDefaultDateFrom = "1970-01-01"

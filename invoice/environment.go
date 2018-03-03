@@ -8,6 +8,7 @@ import (
 	"gitlab.com/almost_cc/govoice/config"
 )
 
+// InvoiceTemplate the template to genreate the pdf
 type InvoiceTemplate struct {
 	Page     Page               `toml:"page"`
 	Sections map[string]Section `toml:"sections"`

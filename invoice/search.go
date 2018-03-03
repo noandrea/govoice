@@ -131,12 +131,19 @@ func RebuildSearchIndex(password string) (int, time.Duration, error) {
 				amount, _ := invoice.GetTotals()
 				df := dateFormatToLayout(invoice.Settings.DateInputFormat)
 				invd, _ := time.Parse(df, invoice.Invoice.Date)
+				// write the text in the bleve index
+				var fulldescr strings.Builder
+				for _, t := range *invoice.Items {
+					fulldescr.WriteString(strings.ToLower(t.Description))
+					fulldescr.WriteString(" ")
+				}
+
 				ie := InvoiceEntry{
 					Number:   invoice.Invoice.Number,
 					Customer: invoice.To.Name,
 					Amount:   amount,
 					Date:     invd,
-					Text:     strings.ToLower(strings.Join(d, " ")),
+					Text:     fulldescr.String(),
 				}
 				// add the invoice to the index
 				b.Index(invoice.Invoice.Number, ie)
@@ -188,7 +195,7 @@ func SearchInvoice(q InvoiceQuery) (entries []InvoiceEntry, found uint64, elapse
 	if len(q.Text) > 0 {
 		subq := bleve.NewFuzzyQuery(strings.ToLower(q.Text))
 		subq.Fuzziness = 4
-		subq.SetField(FIELD_TEXT)
+		subq.SetField(config.FieldText)
 		query.AddQuery(subq)
 	}
 	// add range on amount if necessary
@@ -224,7 +231,7 @@ func SearchInvoice(q InvoiceQuery) (entries []InvoiceEntry, found uint64, elapse
 	for _, res := range results.Hits {
 
 		d, _ := time.Parse(time.RFC3339, res.Fields[config.FieldDate].(string))
-		amount += res.Fields[FIELD_AMOUNT].(float64)
+		amount += res.Fields[config.FieldAmount].(float64)
 		ie := InvoiceEntry{
 			Number:   res.Fields[config.FieldNumber].(string),
 			Customer: res.Fields[config.FieldCustomer].(string),
@@ -253,11 +260,10 @@ func initBleveIndex(dbPath string) (bleve.Index, error) {
 	dm.AddFieldMappingsAt(config.FieldNumber, inm)
 	// text mapping for the customer name
 	cfm := bleve.NewTextFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_CUSTOMER, cfm)
+	dm.AddFieldMappingsAt(config.FieldCustomer, cfm)
 	// text mapping for the invoice text
-	// TODO: to verify
-	// cft := bleve.NewTextFieldMapping()
-	// dm.AddFieldMappingsAt(config.FieldText, cft)
+	cft := bleve.NewTextFieldMapping()
+	dm.AddFieldMappingsAt(config.FieldText, cft)
 	// numeric mapping for the subtotal
 	afm := bleve.NewNumericFieldMapping()
 	dm.AddFieldMappingsAt(config.FieldAmount, afm)
