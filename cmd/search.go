@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/leekchan/accounting"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"gitlab.com/almost_cc/govoice/cmd/helpers"
 	"gitlab.com/almost_cc/govoice/config"
 	gv "gitlab.com/almost_cc/govoice/invoice"
 )
@@ -106,11 +106,8 @@ func search(cmd *cobra.Command, args []string) {
 	}
 
 	// output results to console as a table
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetBorders(tablewriter.Border{Left: false, Top: false, Right: false, Bottom: false})
-	table.SetCenterSeparator("|")
-	table.SetAutoFormatHeaders(false)
-	table.SetHeader([]string{"File", "Number", "Customer", "Date", "Amount"})
+	table := &helpers.TableData{}
+	table.SetHeader("File", "Number", "Customer", "Date", "Amount")
 	// for amount formatting
 	ac := accounting.Accounting{Symbol: "€", Precision: 2}
 
@@ -119,17 +116,20 @@ func search(cmd *cobra.Command, args []string) {
 	if total == 0 {
 		return
 	}
+
+	amountTotal := 0.0
 	for _, e := range entries {
-		path, _ := c.GetInvoicePdfPath(e.Number)
-		table.Append([]string{
-			path,
+		path, _ := config.GetInvoicePdfPath(e.Number)
+		amountTotal += e.Amount
+		table.AddRow(
 			e.Number,
 			e.Customer,
-			e.Date.Format(gv.QUERY_DATE_FORMAT),
+			e.Date.Format(config.QueryDateFormat),
 			ac.FormatMoney(e.Amount),
-		})
+			path,
+		)
 	}
-	// render the output
-	table.Render()
+	table.SetFooter("", "", "Total", ac.FormatMoney(amountTotal), "") // Add Footer
+	helpers.RenderTable(table)
 
 }
