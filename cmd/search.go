@@ -16,14 +16,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/leekchan/accounting"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	gv "gitlab.com/almost_cc/govoice/invoice"
-	"os"
 	"strings"
 	"time"
+
+	"github.com/leekchan/accounting"
+	"github.com/spf13/cobra"
+	"gitlab.com/almost_cc/govoice/cmd/helpers"
+	"gitlab.com/almost_cc/govoice/config"
+	gv "gitlab.com/almost_cc/govoice/invoice"
 )
 
 // searchCmd represents the search command
@@ -59,10 +59,9 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	iq := gv.DefaultInvoiceQuery()
-
 	searchCmd.Flags().StringP("customer", "c", "", "search customer name only")
-	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01)")
-	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(gv.QUERY_DATE_FORMAT), "date range to (default today)")
+	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(config.QueryDateFormat), "date range from (default 1970-01-01")
+	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(config.QueryDateFormat), "date range to (default today)")
 	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (has precedence over date ranges)")
 	searchCmd.Flags().Float64P("amount_greater_equal", "g", iq.AmountGE, "Amount greater or equals to")
 	searchCmd.Flags().Float64P("amount_lower_equal", "l", iq.AmountLE, "Amount lower or equals to")
@@ -71,12 +70,7 @@ func init() {
 
 func search(cmd *cobra.Command, args []string) {
 
-	var c gv.Config
 	var err error
-
-	// parse configuration
-	viper.Unmarshal(&c)
-
 	// default query parameters
 	iq := gv.DefaultInvoiceQuery()
 
@@ -115,12 +109,8 @@ func search(cmd *cobra.Command, args []string) {
 	}
 
 	// output results to console as a table
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetBorders(tablewriter.Border{Left: false, Top: false, Right: false, Bottom: false})
-	table.SetAutoWrapText(false)
-	table.SetCenterSeparator("|")
-	table.SetAutoFormatHeaders(false)
-	table.SetHeader([]string{"Number", "Customer", "Date", "Amount", "File"})
+	table := &helpers.TableData{}
+	table.SetHeader("File", "Number", "Customer", "Date", "Amount")
 	// for amount formatting
 	ac := accounting.Accounting{Symbol: "€", Precision: 2}
 
@@ -129,18 +119,20 @@ func search(cmd *cobra.Command, args []string) {
 	if total == 0 {
 		return
 	}
+
+	amountTotal := 0.0
 	for _, e := range entries {
-		path, _ := c.GetInvoicePdfPath(e.Number)
-		table.Append([]string{
+		path, _ := config.GetInvoicePdfPath(e.Number)
+		amountTotal += e.Amount
+		table.AddRow(
 			e.Number,
 			e.Customer,
-			e.Date.Format(gv.QUERY_DATE_FORMAT),
+			e.Date.Format(config.QueryDateFormat),
 			ac.FormatMoney(e.Amount),
 			path,
-		})
+		)
 	}
-	table.Append([]string{"", "", "", ac.FormatMoney(amount), ""})
-	// render the output
-	table.Render()
+	table.SetFooter("", "", "Total", ac.FormatMoney(amountTotal), "") // Add Footer
+	helpers.RenderTable(table)
 
 }

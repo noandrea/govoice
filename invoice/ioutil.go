@@ -9,89 +9,103 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/pelletier/go-toml"
-	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/pelletier/go-toml"
+	"gitlab.com/almost_cc/govoice/config"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-const (
-	EXT_PDF   = "pdf"
-	EXT_JSON  = "json"
-	EXT_TOML  = "toml"
-	EXT_JSONE = "json.cfb"
-	EXT_CFB   = ".cfb"
-)
-
-// ReadInvoice parse the json file for an invoice
-func readInvoiceDescriptor(path *string, i *Invoice) error {
-	rawJsonDescriptor, err := ioutil.ReadFile(*path)
-	if err != nil {
-		return err
+// write a file and creates intermediate directories if
+// they not exists
+func writeFile(path string, content []byte) (err error) {
+	pp := filepath.Dir(path)
+	if !config.FileExists(pp) {
+		if err = os.MkdirAll(pp, os.FileMode(0770)); err != nil {
+			return
+		}
 	}
-	err = json.Unmarshal(rawJsonDescriptor, &i)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(path, content, os.FileMode(0660))
 }
 
-func readInvoiceDescriptorEncrypted(path *string, i *Invoice, password *string) error {
-	rawJsonDescriptor, err := ioutil.ReadFile(*path)
+// ReadInvoice parse the json file for an invoice
+func readInvoiceDescriptor(path string) (i Invoice, err error) {
+	rawData, err := ioutil.ReadFile(path)
 	if err != nil {
-		return err
+		return
 	}
-	rawJsonDescriptor = decryptCFB(*password, &rawJsonDescriptor)
-	return json.Unmarshal(rawJsonDescriptor, &i)
+	err = json.Unmarshal(rawData, &i)
+	return
+}
 
+func readInvoiceTemplate(path string) (tpl InvoiceTemplate, err error) {
+	rawData, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+	err = toml.Unmarshal(rawData, &tpl)
+	return
+}
+
+func readInvoiceDescriptorEncrypted(path, password string) (i Invoice, err error) {
+	rawData, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+	rawData = decryptCFB(password, &rawData)
+	err = json.Unmarshal(rawData, &i)
+	return
 }
 
 // WriteInvoice write the invoice as descriptor
-func writeInvoiceDescriptor(i *Invoice, workspace *string) {
+func writeInvoiceDescriptor(i *Invoice) {
 	content, err := json.MarshalIndent(*i, "", "  ")
 	if err == nil {
-		ioutil.WriteFile(fmt.Sprintf("%s/%s.json", *workspace, i.Invoice.Number), content, os.FileMode(0660))
+		writeFile(fmt.Sprintf("%s/%s.json", config.Main.Workspace, i.Invoice.Number), content)
 	}
 }
 
-func writeInvoiceDescriptorEncrypted(i *Invoice, jsonPath, password *string) {
+func writeInvoiceDescriptorEncrypted(i *Invoice, jsonPath, password string) {
 	content, err := json.MarshalIndent(*i, "", "  ")
 	if err == nil {
-		encContent := encryptCFB(*password, &content)
-		ioutil.WriteFile(*jsonPath, encContent, os.FileMode(0660))
+		encContent := encryptCFB(password, &content)
+		writeFile(jsonPath, encContent)
 	}
 }
 
 func writeTomlToFile(path string, v interface{}) error {
 	content, _ := toml.Marshal(v)
-	if !strings.HasSuffix(path, ".toml") {
-		path += ".toml"
+	fileExt := fmt.Sprintf(".%s", config.ExtToml)
+	if !strings.HasSuffix(path, fileExt) {
+		path += fileExt
 	}
-	return ioutil.WriteFile(path, content, os.FileMode(0660))
+	return writeFile(path, content)
 }
 
 func writeJsonToFile(path string, v interface{}) error {
 	content, _ := json.MarshalIndent(v, "", "  ")
-	if !strings.HasSuffix(path, ".json") {
-		path += ".json"
+	fileExt := fmt.Sprintf(".%s", config.ExtJson)
+	if !strings.HasSuffix(path, fileExt) {
+		path += fileExt
 	}
-	return ioutil.WriteFile(path, content, os.FileMode(0660))
+	return writeFile(path, content)
 }
 
-func ReadMasterDescriptor(c *Config) (Invoice, error) {
+func ReadMasterDescriptor() (invoice Invoice, err error) {
 	// check if master exists
-	var i Invoice
-	descriptorPath, exists := c.GetMasterPath()
+	descriptorPath, exists := config.GetMasterPath()
 	if !exists {
 		// file not exists, search for the encrypted version
-		return i, errors.New("master descriptor not found!")
+		err = errors.New("master descriptor not found")
+		return
 	}
-	readInvoiceDescriptor(&descriptorPath, &i)
-	return i, nil
+	invoice, err = readInvoiceDescriptor(descriptorPath)
+	return
 }
 
 func ReadUserPassword(message string) (string, error) {
@@ -112,17 +126,6 @@ func ReadUserInput(message string) string {
 	fmt.Print(message + ": ")
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
-}
-
-//getPath build a path composed of baseFolder, fileName, extension
-//
-// returns the composed path and a bool to tell if the file exists (true) or not (false)
-func getPath(basePath, fileName, ext string) (string, bool) {
-	dp := path.Join(basePath, fmt.Sprintf("%s.%s", fileName, ext))
-	if _, err := os.Stat(dp); os.IsNotExist(err) {
-		return dp, false
-	}
-	return dp, true
 }
 
 func decryptCFB(k string, data *[]byte) []byte {

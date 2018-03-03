@@ -17,10 +17,12 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-	gv "gitlab.com/almost_cc/govoice/invoice"
 	"os"
 	"path"
+
+	"github.com/spf13/cobra"
+	"gitlab.com/almost_cc/govoice/config"
+	"gitlab.com/almost_cc/govoice/invoice"
 )
 
 // configCmd represents the config command
@@ -28,7 +30,7 @@ var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "configure govoice",
 	Long:  `the config command should be used once for installation`,
-	Run:   config,
+	Run:   configure,
 }
 
 func init() {
@@ -36,7 +38,7 @@ func init() {
 
 	// Here you will define your flags and configuration settings.
 
-	defaultWorkspace := gv.GetConfigHome()
+	defaultWorkspace := config.GetConfigHome()
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all sub-commands, e.g.:
@@ -48,14 +50,14 @@ func init() {
 
 }
 
-func config(cmd *cobra.Command, args []string) {
+func configure(cmd *cobra.Command, args []string) {
 
 	workspace, _ := cmd.LocalFlags().GetString("workspace")
 	if workspace == "" {
 		workspace = path.Join(os.Getenv("HOME"), "GOVOICE")
 	}
 
-	cp, mp, err := gv.Setup(workspace)
+	cp, mp, err := invoice.Setup(workspace)
 	if err != nil {
 		fmt.Println("configuration failed", err)
 	}

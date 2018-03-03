@@ -12,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 const SAMPLE_SIZE = 1009
@@ -41,7 +43,7 @@ func invoices() []Invoice {
 
 	countdown := SAMPLE_SIZE
 
-	startDate, _ := time.Parse(QUERY_DATE_FORMAT, "2016-06-27")
+	startDate, _ := time.Parse(config.QueryDateFormat, "2016-06-27")
 
 	for {
 		record, err := c.Read()
@@ -88,8 +90,8 @@ func invoices() []Invoice {
 
 		invd := InvoiceData{
 			Number: fmt.Sprintf("%s%s", strings.Repeat("0", 7-len(ins)), ins),
-			Date:   td.Format(QUERY_DATE_FORMAT),
-			Due:    td.AddDate(0, 0, 30).Format(QUERY_DATE_FORMAT),
+			Date:   td.Format(config.QueryDateFormat),
+			Due:    td.AddDate(0, 0, 30).Format(config.QueryDateFormat),
 		}
 
 		i := Invoice{
@@ -126,31 +128,22 @@ func TestSearchInvoice(t *testing.T) {
 
 	t.Log(cfp, mp)
 
-	c := Config{
+	config.Main = config.MainConfig{
 		Workspace:        tmpWorkspace,
 		MasterDescriptor: "_master",
-		Layout: Layout{
-			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
-			Items:    Block{Coords{-1, 100}},
-			From:     Block{Coords{-1, 28}},
-			To:       Block{Coords{-1, 60}},
-			Invoice:  Block{Coords{140, 28}},
-			Payments: Block{Coords{-1, 210}},
-			Notes:    Block{Coords{-1, 240}},
-		},
 	}
 
 	pass := "abcd^^D[é123"
 	pass = strings.Repeat(" ", 32-len(pass)) + pass
 	// this creates the search index and add the invoices to the index
 	for _, i := range invoices() {
-		p, e := c.GetInvoiceJsonPath(i.Invoice.Number)
+		p, e := config.GetInvoiceJsonPath(i.Invoice.Number)
 		if e {
 			t.Error(p, "should not exists")
 		}
-		writeInvoiceDescriptorEncrypted(&i, &p, &pass)
-		RestoreInvoice(&c, i.Invoice.Number, pass)
-		RenderInvoice(&c, pass)
+		writeInvoiceDescriptorEncrypted(&i, p, pass)
+		RestoreInvoice(i.Invoice.Number, pass)
+		RenderInvoice(pass, "default")
 	}
 
 	runQueries(t)
@@ -169,32 +162,23 @@ func TestRebuildSearchIndex(t *testing.T) {
 
 	t.Log(cfp, mp)
 
-	c := Config{
+	config.Main = config.MainConfig{
 		Workspace:        tmpWorkspace,
 		MasterDescriptor: "_master",
-		Layout: Layout{
-			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
-			Items:    Block{Coords{-1, 100}},
-			From:     Block{Coords{-1, 28}},
-			To:       Block{Coords{-1, 60}},
-			Invoice:  Block{Coords{140, 28}},
-			Payments: Block{Coords{-1, 210}},
-			Notes:    Block{Coords{-1, 240}},
-		},
 	}
 
 	pass := "abcd^^D[é123"
 	pass = strings.Repeat(" ", 32-len(pass)) + pass
 	// this creates the search index and add the invoices to the index
 	for _, i := range invoices() {
-		p, _ := c.GetInvoiceJsonPath(i.Invoice.Number)
-		writeInvoiceDescriptorEncrypted(&i, &p, &pass)
-		RestoreInvoice(&c, i.Invoice.Number, pass)
-		RenderInvoice(&c, pass)
+		p, _ := config.GetInvoiceJsonPath(i.Invoice.Number)
+		writeInvoiceDescriptorEncrypted(&i, p, pass)
+		RestoreInvoice(i.Invoice.Number, pass)
+		RenderInvoice(pass, "default")
 	}
 
 	// this recreates the seaarch index should have the same results as above
-	counter, elapsed, _ := RebuildSearchIndex(&c, &pass)
+	counter, elapsed, _ := RebuildSearchIndex(pass)
 	t.Log("indexed", counter, "invoices in", elapsed)
 
 	if counter != SAMPLE_SIZE {
@@ -216,8 +200,8 @@ func runQueries(t *testing.T) {
 	// #####################  first search
 	q = DefaultInvoiceQuery()
 
-	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-01")
-	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-10")
+	q.DateFrom, _ = time.Parse(config.QueryDateFormat, "2017-01-01")
+	q.DateTo, _ = time.Parse(config.QueryDateFormat, "2017-01-10")
 
 	// 25, 25, xx, nil
 	entries, found, elapsed, amount, err = SearchInvoice(q)
@@ -228,8 +212,8 @@ func runQueries(t *testing.T) {
 	// #####################  second search
 	q = DefaultInvoiceQuery()
 
-	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2017-01-01")
-	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-02-10")
+	q.DateFrom, _ = time.Parse(config.QueryDateFormat, "2017-01-01")
+	q.DateTo, _ = time.Parse(config.QueryDateFormat, "2017-02-10")
 	// 110, 110, xx, nil
 	expected = 111
 
@@ -252,8 +236,8 @@ func runQueries(t *testing.T) {
 
 	q.AmountGE = 10
 	q.AmountLE = 1000
-	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2016-06-29")
-	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2016-07-01")
+	q.DateFrom, _ = time.Parse(config.QueryDateFormat, "2016-06-29")
+	q.DateTo, _ = time.Parse(config.QueryDateFormat, "2016-07-01")
 	// 6, 6, xx, nil
 	expected = 6
 
@@ -265,8 +249,8 @@ func runQueries(t *testing.T) {
 
 	q.AmountGE = 1000
 	q.AmountLE = 20000
-	q.DateFrom, _ = time.Parse(QUERY_DATE_FORMAT, "2016-06-27")
-	q.DateTo, _ = time.Parse(QUERY_DATE_FORMAT, "2017-07-10")
+	q.DateFrom, _ = time.Parse(config.QueryDateFormat, "2016-06-27")
+	q.DateTo, _ = time.Parse(config.QueryDateFormat, "2017-07-10")
 	q.Customer = "pizz"
 	expected = 4
 

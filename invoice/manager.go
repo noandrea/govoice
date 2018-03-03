@@ -3,10 +3,11 @@ package invoice
 import (
 	"errors"
 	"fmt"
-	"github.com/nicksnyder/go-i18n/i18n"
 	"math"
 	"strconv"
 	"strings"
+
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 //Errors
@@ -143,84 +144,86 @@ func (i *Item) FormatQuantity(quantitySymbol string, roundQuantity bool) string 
 
 //RenderInvoice render the master descriptor to a pdf file and create the encrypted descriptor of the invoice.
 //The pdf and the descriptor are stored in the workspace folder in the format $INVOICE_NUMBER.pdf / $INVOICE_NUMBER.json.cfb
-func RenderInvoice(c *Config, password string) (string, error) {
+func RenderInvoice(password, templatePath string) (invoiceNumber string, err error) {
 	// check if master exists
-	descriptorPath, exists := c.GetMasterPath()
+	descriptorPath, exists := config.GetMasterPath()
 	if !exists {
 		// file not exists, search for the encrypted version
-		return "", errors.New("master descriptor not found!")
+		err = errors.New("master descriptor not found")
+		return
 	}
 
 	// read the master descriptor
-	var i Invoice
-	err := readInvoiceDescriptor(&descriptorPath, &i)
+	invoice, err := readInvoiceDescriptor(descriptorPath)
 	if err != nil {
-		return "", err
+		return
 	}
+	// set the return invoice number
+	invoiceNumber = invoice.Invoice.Number
 
-	// load translations
-	i18n.MustLoadTranslationFile(GetI18nTranslationPath(i.Settings.Language))
-	T, _ := i18n.Tfunc(i.Settings.Language)
+	// load template
+	template, err := readInvoiceTemplate(templatePath)
 
 	// if Daylitime is enabled retrieve the content
-	if i.Dailytime.Enabled {
-		scanItemsFromDaily(&i)
+	if invoice.Dailytime.Enabled {
+		scanItemsFromDaily(&invoice)
 	}
 	// compute paths
-	pdfPath, _ := c.GetInvoicePdfPath(i.Invoice.Number)
-	descrPath, descrExists := c.GetInvoiceJsonPath(i.Invoice.Number)
+	pdfPath, _ := config.GetInvoicePdfPath(invoice.Invoice.Number)
+	descrPath, descrExists := config.GetInvoiceJsonPath(invoice.Invoice.Number)
 
 	// add invoice to the index
-	if err := addToSearchIndex(c, &i); err != nil {
-		return i.Invoice.Number, err
+	if err = addToSearchIndex(&invoice); err != nil {
+		return
 	}
 
 	// if the de
 	if descrExists {
-		reply := ReadUserInput(fmt.Sprint("invoice ", i.Invoice.Number, " already exists, overwrite? [yes/no] yes"))
+		reply := ReadUserInput(fmt.Sprint("invoice ", invoice.Invoice.Number, " already exists, overwrite? [yes/no] yes"))
 		if reply != "" && reply != "yes" {
-			return "", InvoiceDescriptorExists
+			err = InvoiceDescriptorExists
+			return
 		}
 	}
 
-	if strings.TrimSpace(i.Invoice.Number) == "" {
-		return "", errors.New("missing invoice number in master descriptor")
+	if strings.TrimSpace(invoice.Invoice.Number) == "" {
+		err = errors.New("missing invoice number in master descriptor")
+		return
 	}
 
-	RenderPDF(&i, &c.Layout, &pdfPath, T)
+	RenderPDF(&invoice, pdfPath, &template)
 	// disable extensions in invoice
-	i.DisableExtensions()
+	invoice.DisableExtensions()
 	// copy the date format if using the global one
-	if i.Settings.DateInputFormat == "" {
-		i.Settings.DateInputFormat = c.DateInputFormat
+	if invoice.Settings.DateInputFormat == "" {
+		invoice.Settings.DateInputFormat = config.Main.DateInputFormat
 	}
 
-	writeInvoiceDescriptorEncrypted(&i, &descrPath, &password)
+	writeInvoiceDescriptorEncrypted(&invoice, descrPath, password)
 
 	fmt.Println("encrypted descriptor created at", descrPath)
 	fmt.Println("pdf created at", pdfPath)
 
-	return i.Invoice.Number, nil
+	return
 }
 
 //RestoreInvoice restore the encrypted invoice descriptor into the master descriptor for editing.
 //Overwrites the master descriptor without asking for confirmation.
-func RestoreInvoice(c *Config, invoiceNumber, password string) error {
-	var i Invoice
-
+func RestoreInvoice(invoiceNumber, password string) (err error) {
 	// check if the invoice descriptor exists
-	descriptorPath, exists := c.GetInvoiceJsonPath(invoiceNumber)
+	descriptorPath, exists := config.GetInvoiceJsonPath(invoiceNumber)
 	if !exists {
-		return errors.New(fmt.Sprint("Invoice ", invoiceNumber, " not found in ", c.Workspace))
+		return errors.New(fmt.Sprint("Invoice ", invoiceNumber, " not found in ", descriptorPath))
 	}
 
 	// parse de invoice
-	err := readInvoiceDescriptorEncrypted(&descriptorPath, &i, &password)
+	invoice, err := readInvoiceDescriptorEncrypted(descriptorPath, password)
 	if err != nil {
-		return errors.New("invalid password")
+		err = errors.New("invalid password")
+		return
 	}
 	// dump it on master descriptor
-	masterDescriptorPath, _ := c.GetMasterPath()
-	writeJsonToFile(masterDescriptorPath, i)
-	return nil
+	masterDescriptorPath, _ := config.GetMasterPath()
+	err = writeJsonToFile(masterDescriptorPath, invoice)
+	return
 }

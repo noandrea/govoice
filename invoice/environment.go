@@ -1,29 +1,26 @@
 package invoice
 
 import (
-	"fmt"
+	"bytes"
 	"os"
-	"path"
+	"text/template"
+
+	"gitlab.com/almost_cc/govoice/config"
 )
 
-// ============== CONFIGURATION FILE =================
-type Config struct {
-	Workspace         string `toml:"workspace"`
-	SearchResultLimit int    `toml:"searchResultLimit"`
-	MasterDescriptor  string `toml:"masterDescriptor"`
-	DateInputFormat   string `toml:"dateInputFormat"`
-	Layout            Layout `toml:"layout"`
+type InvoiceTemplate struct {
+	Page     Page               `toml:"page"`
+	Sections map[string]Section `toml:"sections"`
 }
 
-type Layout struct {
-	Style Style `toml:"style"`
-
-	Items    Block `toml:"items"`
-	From     Block `toml:"from"`
-	To       Block `toml:"to"`
-	Invoice  Block `toml:"invoice"`
-	Payments Block `toml:"payments"`
-	Notes    Block `toml:"notes"`
+type Page struct {
+	Orientation     string  `toml:"orientation"`
+	Size            string  `toml:"size"`
+	BackgroundColor []int   `toml:"background_color"`
+	FontColor       []int   `toml:"font_color"`
+	Margins         Margins `toml:"margins"`
+	Font            Font    `toml:"font"`
+	Table           Table   `toml:"table"`
 }
 
 type Margins struct {
@@ -33,108 +30,49 @@ type Margins struct {
 	Top    float64 `toml:"top"`
 }
 
-type Style struct {
-	Margins          Margins `toml:"margins"`
-	FontFamily       string  `toml:"fontFamily"`
-	FontSizeNormal   float64 `toml:"fontSizeNormal"`
-	FontSizeH1       float64 `toml:"fontSizeH1"`
-	FontSizeH2       float64 `toml:"fontSizeH2"`
-	FontSizeSmall    float64 `toml:"fontsizeSmall"`
-	LineHeightNormal float64 `toml:"lineHeightNormal"`
-	LineHeightH1     float64 `toml:"lineHeightH1"`
-	LineHeightH2     float64 `toml:"lineHeightH2"`
-	LineHeightSmall  float64 `toml:"lineHeightSmall"`
-	TableCol1W       float64 `toml:"tableCol1w"`
-	TableCol2W       float64 `toml:"tableCol2w"`
-	TableCol3W       float64 `toml:"tableCol3w"`
-	TableCol4W       float64 `toml:"tableCol4w"`
-	TableHeadHeight  float64 `toml:"tableHeadHeight"`
-	TableRowHeight   float64 `toml:"tableRowHeight"`
+type Font struct {
+	Family           string  `toml:"family"`
+	SizeNormal       float64 `toml:"sizeNormal"`
+	SizeH1           float64 `toml:"size_h1"`
+	SizeH2           float64 `toml:"size_h2"`
+	SizeSmall        float64 `toml:"size_small"`
+	LineHeightNormal float64 `toml:"line_height_normal"`
+	LineHeightH1     float64 `toml:"line_height_h1"`
+	LineHeightH2     float64 `toml:"line_height_h2"`
+	LineHeightSmall  float64 `toml:"line_height_small"`
 }
 
-func (c *Config) GetMasterPath() (string, bool) {
+type Table struct {
+	Col1W      float64 `toml:"col1w"`
+	Col2W      float64 `toml:"col2w"`
+	Col3W      float64 `toml:"col3w"`
+	Col4W      float64 `toml:"col4w"`
+	HeadHeight float64 `toml:"head_height"`
+	RowHeight  float64 `toml:"row_height"`
+}
 
-	dp := path.Join(c.Workspace, fmt.Sprintf("%s.json", c.MasterDescriptor))
-	if _, err := os.Stat(dp); os.IsNotExist(err) {
-		return dp, false
+// Section represents an pdf block
+type Section struct {
+	X        float64 `toml:"x"`
+	Y        float64 `toml:"y"`
+	Title    string  `toml:"title"`
+	Template string  `toml:"tpl"`
+	Content  string  `toml:"-"`
+}
+
+// render a section template with the data
+func (s Section) applyTemplate(data interface{}) (content string) {
+	tmpl, err := template.New("__").Parse(s.Template)
+	if err != nil {
+		panic(err)
 	}
-	return dp, true
-}
-
-//GetInvoiceJsonPath get the path of the encrypted version of an invoice in the workspace.
-// returns the path of the invoice, and a boolean if the invoice already exists (true) or not (false)
-func (c *Config) GetInvoiceJsonPath(name string) (string, bool) {
-	return getPath(c.Workspace, name, EXT_JSONE)
-}
-
-func (c *Config) GetInvoicePdfPath(name string) (string, bool) {
-	return getPath(c.Workspace, name, EXT_PDF)
-}
-
-// Block represents an pdf block
-type Block struct {
-	Position Coords
-}
-
-type Coords struct {
-	X float64 `toml:"x"`
-	Y float64 `toml:"y"`
-}
-
-//============== TRANSLATION ================
-
-type Translation struct {
-	From               I18NOther `toml:"from"`
-	Sender             I18NOther `toml:"sender"`
-	To                 I18NOther `toml:"to"`
-	Recipient          I18NOther `toml:"recipient"`
-	Invoice            I18NOther `toml:"invoice"`
-	InvoiceData        I18NOther `toml:"invoice_data"`
-	PaymentDetails     I18NOther `toml:"payment_details"`
-	PaymentDetailsData I18NOther `toml:"payment_details_data"`
-	Notes              I18NOther `toml:"notes"`
-	Desc               I18NOther `toml:"desc"`
-	Quantity           I18NOther `toml:"quantity"`
-	Rate               I18NOther `toml:"rate"`
-	Cost               I18NOther `toml:"cost"`
-	Subtotal           I18NOther `toml:"subtotal"`
-	Total              I18NOther `toml:"total"`
-	Tax                I18NOther `toml:"tax"`
-}
-
-type I18NOther struct {
-	Other string `toml:"other"`
-}
-
-// ======== functions =========
-
-func GetConfigHome() string {
-	return path.Join(os.Getenv("HOME"), ".govoice")
-}
-
-func GetConfigFilePath() string {
-	return path.Join(GetConfigHome(), "config.toml")
-}
-
-func GetI18nHome() string {
-	return path.Join(GetConfigHome(), "i18n")
-}
-
-func GetSearchIndexFilePath() (string, bool) {
-	ifp := path.Join(GetConfigHome(), "index.bleve")
-	if _, err := os.Stat(ifp); os.IsNotExist(err) {
-		return ifp, false
+	var rendered bytes.Buffer
+	err = tmpl.Execute(&rendered, data)
+	if err != nil {
+		panic(err)
 	}
-	return ifp, true
-}
-
-func GetI18nTranslationPath(lang string) string {
-	if lang == "" {
-		lang = "en"
-	}
-
-	l, _ := getPath(GetI18nHome(), lang, EXT_TOML)
-	return l
+	content = rendered.String()
+	return
 }
 
 // Setup setup the applications,
@@ -144,58 +82,60 @@ func GetI18nTranslationPath(lang string) string {
 func Setup(workspace string) (string, string, error) {
 	var configPath, masterPath string
 	// create configuration with defaults
-	c := Config{
+	c := config.MainConfig{
 		Workspace:         workspace,
 		MasterDescriptor:  "_master",
 		DateInputFormat:   "%d.%m.%y",
 		SearchResultLimit: 50,
-		Layout: Layout{
-			Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
-			Items:    Block{Coords{-1, 100}},
-			From:     Block{Coords{-1, 28}},
-			To:       Block{Coords{-1, 60}},
-			Invoice:  Block{Coords{140, 28}},
-			Payments: Block{Coords{-1, 210}},
-			Notes:    Block{Coords{-1, 240}},
-		},
+		// Layout: Layout{
+		// 	Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
+		// 	Items:    Block{Coords{-1, 100}},
+		// 	From:     Block{Coords{-1, 28}},
+		// 	To:       Block{Coords{-1, 60}},
+		// 	Invoice:  Block{Coords{140, 28}},
+		// 	Payments: Block{Coords{-1, 210}},
+		// 	Notes:    Block{Coords{-1, 240}},
+		// },
 	}
 	// first create directories
-	if err := os.MkdirAll(GetConfigHome(), 0770); err != nil {
+	if err := os.MkdirAll(config.GetConfigHome(), 0770); err != nil {
 		return configPath, masterPath, err
 	}
 
-	if err := os.MkdirAll(GetI18nHome(), 0770); err != nil {
+	if err := os.MkdirAll(config.GetTemplatesHome(), 0770); err != nil {
 		return configPath, masterPath, err
 	}
 
 	// write default configuration file
-	configPath = GetConfigFilePath()
+	configPath = config.GetConfigFilePath()
 	err := writeTomlToFile(configPath, c)
 	if err != nil {
 		return configPath, masterPath, err
 	}
 
 	// write internationalization file
-	en := Translation{
-		From:               I18NOther{"FROM"},
-		Sender:             I18NOther{"{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"},
-		To:                 I18NOther{"TO"},
-		Recipient:          I18NOther{"{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"},
-		Invoice:            I18NOther{"INVOICE"},
-		InvoiceData:        I18NOther{"N. {{.Number}}\nDate: {{.Date}}\nDue:{{.Due}}"},
-		PaymentDetails:     I18NOther{"PAYMENTS DETAILS"},
-		PaymentDetailsData: I18NOther{"{{.AccountHolder}}\n\nBank: {{.Bank}}\nIBAN: {{.Iban}}\nBIC: {{.Bic}}"},
-		Notes:              I18NOther{"NOTES"},
-		Desc:               I18NOther{"Description"},
-		Quantity:           I18NOther{"Quantity"},
-		Rate:               I18NOther{"Rate"},
-		Cost:               I18NOther{"Cost"},
-		Subtotal:           I18NOther{"Subtotal"},
-		Total:              I18NOther{"Total"},
-		Tax:                I18NOther{"VAT"},
-	}
-	enPath := GetI18nTranslationPath("en")
-	err = writeTomlToFile(enPath, en)
+
+	// en := Translation{
+	// 	From:               I18NOther{"FROM"},
+	// 	Sender:             I18NOther{"{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"},
+	// 	To:                 I18NOther{"TO"},
+	// 	Recipient:          I18NOther{"{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"},
+	// 	Invoice:            I18NOther{"INVOICE"},
+	// 	InvoiceData:        I18NOther{"N. {{.Number}}\nDate: {{.Date}}\nDue:{{.Due}}"},
+	// 	PaymentDetails:     I18NOther{"PAYMENTS DETAILS"},
+	// 	PaymentDetailsData: I18NOther{"{{.AccountHolder}}\n\nBank: {{.Bank}}\nIBAN: {{.Iban}}\nBIC: {{.Bic}}"},
+	// 	Notes:              I18NOther{"NOTES"},
+	// 	Desc:               I18NOther{"Description"},
+	// 	Quantity:           I18NOther{"Quantity"},
+	// 	Rate:               I18NOther{"Rate"},
+	// 	Cost:               I18NOther{"Cost"},
+	// 	Subtotal:           I18NOther{"Subtotal"},
+	// 	Total:              I18NOther{"Total"},
+	// 	Tax:                I18NOther{"VAT"},
+	// }
+	enPath, exists := config.GetTemplatePath(config.DefaultTemplateName)
+	//TODO not good
+	err = writeTomlToFile(enPath, "")
 	if err != nil {
 		return configPath, masterPath, err
 	}
@@ -203,7 +143,7 @@ func Setup(workspace string) (string, string, error) {
 	// write master.json
 	// create the config directory if not exists
 	_ = os.Mkdir(workspace, os.FileMode(0770))
-	masterPath, exists := c.GetMasterPath()
+	masterPath, exists = config.GetMasterPath()
 	// don't overwrite the master if already exists
 	if !exists {
 		master := Invoice{

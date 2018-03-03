@@ -16,8 +16,8 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	gv "gitlab.com/almost_cc/govoice/invoice"
 )
 
@@ -46,18 +46,13 @@ func init() {
 
 func index(cmd *cobra.Command, args []string) {
 
-	var c gv.Config
-
-	// parse configuration
-	viper.Unmarshal(&c)
-
 	// retrieve password
 	password, err := gv.ReadUserPassword("Enter password:")
 	if err != nil {
 		fmt.Println(err)
 	}
 	// create the index
-	count, elapsed, err := gv.RebuildSearchIndex(&c, &password)
+	count, elapsed, err := gv.RebuildSearchIndex(password)
 	// if index creation is
 	if err != nil {
 		fmt.Println(err)

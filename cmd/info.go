@@ -15,11 +15,9 @@
 package cmd
 
 import (
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	gv "gitlab.com/almost_cc/govoice/invoice"
-	"os"
+	"gitlab.com/almost_cc/govoice/cmd/helpers"
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 // infoCmd represents the info command
@@ -47,23 +45,16 @@ func init() {
 
 func info(cmd *cobra.Command, args []string) {
 	// print table in console
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	table.SetCenterSeparator("|")
+	table := &helpers.TableData{}
 
-	var c gv.Config
-	// parse configuration
-	viper.Unmarshal(&c)
-
-	mp, _ := c.GetMasterPath()
+	mp, _ := config.GetMasterPath()
 	println()
-	table.SetHeader([]string{"path", "desc"})
-	table.Append([]string{gv.GetConfigHome(), "application home"})
-	table.Append([]string{gv.GetConfigFilePath(), "config file"})
-	table.Append([]string{gv.GetI18nHome(), "translation files"})
-	table.Append([]string{c.Workspace, "workspace"})
-	table.Append([]string{mp, "master descriptor"})
-	table.Render()
+	table.SetHeader("Desc", "Path")
+	table.AddRow("$HOME", config.GetConfigHome())
+	table.AddRow("Config", config.GetConfigFilePath())
+	table.AddRow("Workspace", config.Main.Workspace)
+	table.AddRow("Master descriptor", mp)
+	helpers.RenderTable(table)
 	println()
 
 }
