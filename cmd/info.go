@@ -17,9 +17,7 @@ package cmd
 import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	gv "gitlab.com/almost_cc/govoice/invoice"
-	"os"
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 // infoCmd represents the info command
@@ -51,11 +49,7 @@ func info(cmd *cobra.Command, args []string) {
 	table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
 	table.SetCenterSeparator("|")
 
-	var c gv.Config
-	// parse configuration
-	viper.Unmarshal(&c)
-
-	mp, _ := c.GetMasterPath()
+	mp, _ := config.GetMasterPath()
 	println()
 	table.SetHeader([]string{"path", "desc"})
 	table.Append([]string{gv.GetConfigHome(), "application home"})

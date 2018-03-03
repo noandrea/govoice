@@ -16,14 +16,14 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/leekchan/accounting"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"gitlab.com/almost_cc/govoice/config"
 	gv "gitlab.com/almost_cc/govoice/invoice"
-	"os"
-	"strings"
-	"time"
 )
 
 // searchCmd represents the search command
@@ -60,8 +60,8 @@ func init() {
 	// is called directly, e.g.:
 	iq := gv.DefaultInvoiceQuery()
 
-	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(gv.QUERY_DATE_FORMAT), "date range from (default 1970-01-01")
-	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(gv.QUERY_DATE_FORMAT), "date range to (default today)")
+	searchCmd.Flags().StringP("date_from", "f", iq.DateFrom.Format(config.QueryDateFormat), "date range from (default 1970-01-01")
+	searchCmd.Flags().StringP("date_to", "t", iq.DateTo.Format(config.QueryDateFormat), "date range to (default today)")
 	searchCmd.Flags().IntP("months", "m", 0, "months, now - $months range, (has precedence over date ranges)")
 	searchCmd.Flags().Float64P("amount_greater_equal", "g", iq.AmountGE, "Amount greater or equals to")
 	searchCmd.Flags().Float64P("amount_lower_equal", "l", iq.AmountLE, "Amount lower or equals to")
@@ -70,12 +70,7 @@ func init() {
 
 func search(cmd *cobra.Command, args []string) {
 
-	var c gv.Config
 	var err error
-
-	// parse configuration
-	viper.Unmarshal(&c)
-
 	// default query parameters
 	iq := gv.DefaultInvoiceQuery()
 

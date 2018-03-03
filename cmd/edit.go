@@ -19,8 +19,7 @@ import (
 
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	gv "gitlab.com/almost_cc/govoice/invoice"
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 // editCmd represents the edit command
@@ -47,17 +46,13 @@ func init() {
 
 func edit(cmd *cobra.Command, args []string) {
 
-	var c gv.Config
-	var err error
-	// load configuration
-	viper.Unmarshal(&c)
 	// get the master path
-	mp, e := c.GetMasterPath()
-	if !e {
+	mp, exists := config.GetMasterPath()
+	if !exists {
 		fmt.Println("master path at ", mp, "does not exists! run govoice config to restore it")
 	}
 
-	app, _ := cmd.Flags().GetString("app")
+	app, err := cmd.Flags().GetString("app")
 	if app == "" {
 		err = open.Run(mp)
 	} else {

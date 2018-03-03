@@ -3,30 +3,19 @@ package invoice
 import (
 	"errors"
 	"fmt"
-	"github.com/blevesearch/bleve"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
 	"time"
-)
 
-const (
-	FIELD_NUMBER   = "Number"
-	FIELD_CUSTOMER = "Customer"
-	FIELD_AMOUNT   = "Amount"
-	FIELD_DATE     = "Date"
-
-	QUERY_DATE_FORMAT       = "2006-01-02"
-	QUERY_DEFAULT_DATE_FROM = "1970-01-01"
-	QUERY_DEFAULT_AMOUNT_GE = float64(0)
-	QUERY_DEFAULT_AMOUNT_LE = float64(1000000000000)
-	QUERY_DEFAULT_CUSTOMER  = "none"
+	"github.com/blevesearch/bleve"
+	"gitlab.com/almost_cc/govoice/config"
 )
 
 // -------- types --------
 
-//InvoiceQuery is the query object to search for invoices
+// InvoiceQuery is the query object to search for invoices
 type InvoiceQuery struct {
 	Customer string
 	AmountGE float64
@@ -37,23 +26,23 @@ type InvoiceQuery struct {
 
 func (q *InvoiceQuery) String() string {
 	var f []string
-	if q.Customer != QUERY_DEFAULT_CUSTOMER {
+	if q.Customer != config.QueryDefaultCustomer {
 		f = append(f, fmt.Sprint("customer like ", q.Customer))
 	}
-	ddf, _ := time.Parse(QUERY_DATE_FORMAT, QUERY_DEFAULT_DATE_FROM)
+	ddf, _ := time.Parse(config.QueryDateFormat, config.QueryDefaultDateFrom)
 	if !isSameDate(ddf, q.DateFrom) {
-		f = append(f, fmt.Sprint("date > ", q.DateFrom.Format(QUERY_DATE_FORMAT)))
+		f = append(f, fmt.Sprint("date > ", q.DateFrom.Format(config.QueryDateFormat)))
 
 	}
 	if !isSameDate(time.Now(), q.DateTo) {
-		f = append(f, fmt.Sprint("date > ", q.DateFrom.Format(QUERY_DATE_FORMAT)))
+		f = append(f, fmt.Sprint("date > ", q.DateFrom.Format(config.QueryDateFormat)))
 	}
 	// add range on amount if necessary
-	if q.AmountGE != QUERY_DEFAULT_AMOUNT_GE {
+	if q.AmountGE != config.QueryDefaultAmountGE {
 		f = append(f, fmt.Sprint("amount > ", q.AmountGE))
 	}
 	// add range on amount if necessary
-	if q.AmountLE != QUERY_DEFAULT_AMOUNT_LE {
+	if q.AmountLE != config.QueryDefaultAmountLE {
 		f = append(f, fmt.Sprint("amount < ", q.AmountLE))
 	}
 	return strings.Join(f, " and ")
@@ -71,11 +60,11 @@ type InvoiceEntry struct {
 
 //DefaultInvoiceQuery return the default invoice query object
 func DefaultInvoiceQuery() InvoiceQuery {
-	df, _ := time.Parse(QUERY_DATE_FORMAT, QUERY_DEFAULT_DATE_FROM)
+	df, _ := time.Parse(config.QueryDateFormat, config.QueryDefaultDateFrom)
 	return InvoiceQuery{
-		Customer: QUERY_DEFAULT_CUSTOMER,
-		AmountGE: float64(QUERY_DEFAULT_AMOUNT_GE),
-		AmountLE: float64(QUERY_DEFAULT_AMOUNT_LE),
+		Customer: config.QueryDefaultCustomer,
+		AmountGE: float64(config.QueryDefaultAmountGE),
+		AmountLE: float64(config.QueryDefaultAmountLE),
 		DateFrom: df,
 		DateTo:   time.Now(),
 	}
@@ -85,7 +74,7 @@ func DefaultInvoiceQuery() InvoiceQuery {
 func CreateSearchIndex() error {
 
 	// index
-	indexPath, exists := GetSearchIndexFilePath()
+	indexPath, exists := config.GetSearchIndexFilePath()
 	// if exists do nothing
 	if exists {
 		return nil
@@ -100,12 +89,11 @@ func CreateSearchIndex() error {
 }
 
 //RebuildSearchIndex rebuild search index
-func RebuildSearchIndex(c *Config, password *string) (int, time.Duration, error) {
-	var i Invoice
+func RebuildSearchIndex(password string) (int, time.Duration, error) {
 	var counter int = -1
 	var elapsed time.Duration
 	// delete old index if exists
-	indexPath, exists := GetSearchIndexFilePath()
+	indexPath, exists := config.GetSearchIndexFilePath()
 	if exists {
 		if err := os.RemoveAll(indexPath); err != nil {
 			return counter, elapsed, err
@@ -125,25 +113,25 @@ func RebuildSearchIndex(c *Config, password *string) (int, time.Duration, error)
 	b := index.NewBatch()
 
 	// scan the descriptor files
-	files, _ := ioutil.ReadDir(c.Workspace)
+	files, _ := ioutil.ReadDir(config.Main.Workspace)
 
 	counter = 0
 	for _, f := range files {
-		if path.Ext(f.Name()) == EXT_CFB {
-			descriptorPath := path.Join(c.Workspace, f.Name())
-			if err := readInvoiceDescriptorEncrypted(&descriptorPath, &i, password); err == nil {
+		if path.Ext(f.Name()) == config.ExtCfb {
+			descriptorPath := path.Join(config.Main.Workspace, f.Name())
+			if invoice, err := readInvoiceDescriptorEncrypted(descriptorPath, password); err == nil {
 				// build the IndexEntry
-				amount, _ := i.GetTotals()
-				df := dateFormatToLayout(i.Settings.DateInputFormat)
-				invd, _ := time.Parse(df, i.Invoice.Date)
+				amount, _ := invoice.GetTotals()
+				df := dateFormatToLayout(invoice.Settings.DateInputFormat)
+				invd, _ := time.Parse(df, invoice.Invoice.Date)
 				ie := InvoiceEntry{
-					Number:   i.Invoice.Number,
-					Customer: i.To.Name,
+					Number:   invoice.Invoice.Number,
+					Customer: invoice.To.Name,
 					Amount:   amount,
 					Date:     invd,
 				}
 				// add the invoice to the index
-				b.Index(i.Invoice.Number, ie)
+				b.Index(invoice.Invoice.Number, ie)
 
 				counter++
 				if counter%100 == 0 {
@@ -169,7 +157,7 @@ func SearchInvoice(q InvoiceQuery) ([]InvoiceEntry, uint64, time.Duration, error
 	var elapsed time.Duration
 	var err error
 	// index
-	indexPath, exists := GetSearchIndexFilePath()
+	indexPath, exists := config.GetSearchIndexFilePath()
 	// if the index exists delete it
 	if !exists {
 		err = errors.New("search index does not exists, run govoice index to create the index")
@@ -185,23 +173,23 @@ func SearchInvoice(q InvoiceQuery) ([]InvoiceEntry, uint64, time.Duration, error
 
 	query := bleve.NewConjunctionQuery()
 	// add phrase match for customer
-	if q.Customer != QUERY_DEFAULT_CUSTOMER {
+	if q.Customer != config.QueryDefaultCustomer {
 		subq := bleve.NewFuzzyQuery(q.Customer)
 		subq.Fuzziness = 2
-		subq.SetField(FIELD_CUSTOMER)
+		subq.SetField(config.FieldCustomer)
 		query.AddQuery(subq)
 	}
 	// add range on amount if necessary
-	if q.AmountLE != QUERY_DEFAULT_AMOUNT_LE || q.AmountGE != QUERY_DEFAULT_AMOUNT_GE {
+	if q.AmountLE != config.QueryDefaultAmountLE || q.AmountGE != config.QueryDefaultAmountGE {
 		subq := bleve.NewNumericRangeQuery(&q.AmountGE, &q.AmountLE)
-		subq.SetField(FIELD_AMOUNT)
+		subq.SetField(config.FieldAmount)
 		query.AddQuery(subq)
 	}
 	// add range query on date
-	ddf, _ := time.Parse(QUERY_DATE_FORMAT, QUERY_DEFAULT_DATE_FROM)
+	ddf, _ := time.Parse(config.QueryDateFormat, config.QueryDefaultDateFrom)
 	if !isSameDate(ddf, q.DateFrom) || !isSameDate(time.Now(), q.DateTo) {
 		subq := bleve.NewDateRangeQuery(q.DateFrom, q.DateTo)
-		subq.SetField(FIELD_DATE)
+		subq.SetField(config.FieldDate)
 		query.AddQuery(subq)
 	}
 
@@ -211,7 +199,7 @@ func SearchInvoice(q InvoiceQuery) ([]InvoiceEntry, uint64, time.Duration, error
 	}
 
 	search := bleve.NewSearchRequest(query)
-	search.Fields = []string{FIELD_NUMBER, FIELD_CUSTOMER, FIELD_AMOUNT, FIELD_DATE}
+	search.Fields = []string{config.FieldNumber, config.FieldCustomer, config.FieldAmount, config.FieldDate}
 	search.Size = 50
 	results, err := index.Search(search)
 	if err != nil {
@@ -221,11 +209,11 @@ func SearchInvoice(q InvoiceQuery) ([]InvoiceEntry, uint64, time.Duration, error
 
 	for _, res := range results.Hits {
 
-		d, _ := time.Parse(time.RFC3339, res.Fields[FIELD_DATE].(string))
+		d, _ := time.Parse(time.RFC3339, res.Fields[config.FieldDate].(string))
 		ie := InvoiceEntry{
-			Number:   res.Fields[FIELD_NUMBER].(string),
-			Customer: res.Fields[FIELD_CUSTOMER].(string),
-			Amount:   res.Fields[FIELD_AMOUNT].(float64),
+			Number:   res.Fields[config.FieldNumber].(string),
+			Customer: res.Fields[config.FieldCustomer].(string),
+			Amount:   res.Fields[config.FieldAmount].(float64),
 			Date:     d,
 		}
 		entries = append(entries, ie)
@@ -247,16 +235,16 @@ func initBleveIndex(dbPath string) (bleve.Index, error) {
 	dm := bleve.NewDocumentMapping()
 	// text mapping for the invoce number
 	inm := bleve.NewTextFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_NUMBER, inm)
+	dm.AddFieldMappingsAt(config.FieldNumber, inm)
 	// text mapping for the customer name
 	cfm := bleve.NewTextFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_CUSTOMER, cfm)
+	dm.AddFieldMappingsAt(config.FieldCustomer, cfm)
 	// numeric mapping for the subtotal
 	afm := bleve.NewNumericFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_AMOUNT, afm)
+	dm.AddFieldMappingsAt(config.FieldAmount, afm)
 	// numeric mapping for the date
 	dfm := bleve.NewDateTimeFieldMapping()
-	dm.AddFieldMappingsAt(FIELD_DATE, dfm)
+	dm.AddFieldMappingsAt(config.FieldDate, dfm)
 	// add document mapping
 	mapping.AddDocumentMapping("invoice", dm)
 
@@ -270,9 +258,9 @@ func initBleveIndex(dbPath string) (bleve.Index, error) {
 }
 
 //addToSearchIndex add an invoice to the existing search index
-func addToSearchIndex(c *Config, i *Invoice) error {
+func addToSearchIndex(i *Invoice) error {
 	// index
-	indexPath, exists := GetSearchIndexFilePath()
+	indexPath, exists := config.GetSearchIndexFilePath()
 	if !exists {
 		return errors.New("index does not exists")
 	}
