@@ -97,3 +97,6 @@ var Main MainConfig
 
 // DebugEnabled if debugging is enbled or not
 var DebugEnabled = false
+
+// TemplateName loaded at startup via -t paramter
+var TemplateName = DefaultTemplateName

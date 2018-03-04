@@ -17,6 +17,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/spf13/viper"
+
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
 	"gitlab.com/almost_cc/govoice/config"
@@ -33,16 +35,19 @@ a encrypted version of the invoice data`,
 	Run: render,
 }
 
+var fname = "template"
+
 func init() {
 	RootCmd.AddCommand(renderCmd)
 	tp, _ := config.GetTemplatePath(config.DefaultTemplateName)
 	help := fmt.Sprintln("template name or path, defaults to:", tp)
-	renderCmd.Flags().StringVarP(&templatePath, "template", "t", config.DefaultTemplateName, help)
+	renderCmd.PersistentFlags().StringVarP(&config.TemplateName, fname, "t", config.DefaultTemplateName, help)
+	viper.BindPFlag(fname, renderCmd.PersistentFlags().Lookup(fname))
+
 }
 
-var templatePath string
-
 func render(cmd *cobra.Command, args []string) {
+
 	// read the password
 	password, err := govoice.ReadUserPassword("Enter password:")
 	if err != nil {
@@ -50,12 +55,14 @@ func render(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	templatePath, te := config.GetTemplatePath(templatePath)
+	templatePath, te := config.GetTemplatePath(config.TemplateName)
 	// if template path is a string, load the template from the default folder
 	if !te {
 		fmt.Println("template file", templatePath, "does not exists")
 		return
 	}
+
+	fmt.Println("template is ", templatePath)
 
 	// render invoice
 	if invoiceNumber, err := govoice.RenderInvoice(password, templatePath); err == govoice.InvoiceDescriptorExists {

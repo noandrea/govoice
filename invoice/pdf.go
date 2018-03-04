@@ -2,7 +2,6 @@ package invoice
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -80,6 +79,19 @@ func computeCoordinates(s *Section, margins *Margins) {
 
 }
 
+func computeColors(rgb []int, defaultR, defaultG, defaultB int) (r, g, b int) {
+	r, g, b = defaultR, defaultG, defaultB
+	if len(rgb) != 3 {
+		return
+	}
+	for _, v := range rgb {
+		if v < 0 || v > 255 {
+			return
+		}
+	}
+	return rgb[0], rgb[1], rgb[2]
+}
+
 func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 
 	// create page
@@ -99,12 +111,13 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	w, h := pdf.GetPageSize()
 	ml, _, _, _ := pdf.GetMargins()
 	// draw the background
-	r, g, b := pdf.GetFillColor()
-	pdf.SetFillColor(tpl.Page.BackgroundColor[0], tpl.Page.BackgroundColor[1], tpl.Page.BackgroundColor[2])
+	fr, fg, fb := pdf.GetFillColor()
+	pdf.SetFillColor(computeColors(tpl.Page.BackgroundColor, whiteR, whiteG, whiteB))
 	pdf.Rect(.0, .0, w, h, "FD")
-	pdf.SetFillColor(r, g, b)
+	// restore the fill colors
+	pdf.SetFillColor(fr, fg, fb)
 	// set the font color
-	pdf.SetTextColor(tpl.Page.FontColor[0], tpl.Page.FontColor[1], tpl.Page.FontColor[2])
+	pdf.SetTextColor(computeColors(tpl.Page.FontColor, blackR, blackG, blackB))
 
 	// title
 	title := utf8(strings.ToUpper(invoice.From.Name))
@@ -124,9 +137,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 
 	// write from header
 	section = tpl.Sections[sectionFrom]
-	if err := applyTemplate(&section, invoice.From); err != nil {
-		fmt.Println(err)
-	}
+	applyTemplate(&section, invoice.From)
 	renderBlock(pdf, &section, &tpl.Page)
 
 	// write to header
@@ -158,10 +169,10 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 
 	// write headers
 	tr, tg, tb := pdf.GetTextColor()
-	fr, fg, fb := pdf.GetFillColor()
+	fr, fg, fb = pdf.GetFillColor()
 
-	pdf.SetTextColor(tpl.Page.Table.HeaderFontColor[0], tpl.Page.Table.HeaderFontColor[1], tpl.Page.Table.HeaderFontColor[2])
-	pdf.SetFillColor(tpl.Page.Table.HeaderBackgroundColor[0], tpl.Page.Table.HeaderBackgroundColor[1], tpl.Page.Table.HeaderBackgroundColor[2])
+	pdf.SetTextColor(computeColors(tpl.Page.Table.HeaderFontColor, tr, tg, tb))
+	pdf.SetFillColor(computeColors(tpl.Page.Table.HeaderBackgroundColor, fr, fg, fb))
 
 	data := tpl.Page.Table.Header
 	// table header console
