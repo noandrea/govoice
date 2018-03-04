@@ -44,16 +44,18 @@ type Font struct {
 }
 
 type Table struct {
-	Col1W         float64  `toml:"col1w"`
-	Col2W         float64  `toml:"col2w"`
-	Col3W         float64  `toml:"col3w"`
-	Col4W         float64  `toml:"col4w"`
-	HeadHeight    float64  `toml:"head_height"`
-	RowHeight     float64  `toml:"row_height"`
-	Header        []string `toml:"header"`
-	LabelTotal    string   `toml:"label_total"`
-	LabelSubtotal string   `toml:"label_subtotal"`
-	LabelTax      string   `toml:"label_tax"`
+	Col1W                 float64  `toml:"col1w"`
+	Col2W                 float64  `toml:"col2w"`
+	Col3W                 float64  `toml:"col3w"`
+	Col4W                 float64  `toml:"col4w"`
+	HeadHeight            float64  `toml:"head_height"`
+	RowHeight             float64  `toml:"row_height"`
+	Header                []string `toml:"header"`
+	LabelTotal            string   `toml:"label_total"`
+	LabelSubtotal         string   `toml:"label_subtotal"`
+	LabelTax              string   `toml:"label_tax"`
+	HeaderFontColor       []int    `toml:"header_font_color"`
+	HeaderBackgroundColor []int    `toml:"header_background_color"`
 }
 
 // Section represents an pdf block

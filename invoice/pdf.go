@@ -96,8 +96,15 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	// add a page to the pdf
 	pdf.AddPage()
 	// get page size and margins
-	w, _ := pdf.GetPageSize()
+	w, h := pdf.GetPageSize()
 	ml, _, _, _ := pdf.GetMargins()
+	// draw the background
+	r, g, b := pdf.GetFillColor()
+	pdf.SetFillColor(tpl.Page.BackgroundColor[0], tpl.Page.BackgroundColor[1], tpl.Page.BackgroundColor[2])
+	pdf.Rect(.0, .0, w, h, "FD")
+	pdf.SetFillColor(r, g, b)
+	// set the font color
+	pdf.SetTextColor(tpl.Page.FontColor[0], tpl.Page.FontColor[1], tpl.Page.FontColor[2])
 
 	// title
 	title := utf8(strings.ToUpper(invoice.From.Name))
@@ -129,8 +136,8 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 
 	// TABLE itmes
 	section = tpl.Sections[sectionDetails]
-	computeCoordinates(&section, &tpl.Page.Margins)
-	pdf.SetXY(section.X, section.Y)
+	renderBlock(pdf, &section, &tpl.Page)
+
 	var c1v, c2v, c3v, c4v string // cell values
 
 	// print table in console
@@ -139,7 +146,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	table.SetCenterSeparator("|")
 
 	// calculate the column widths
-	tableMaxWidth := w - (ml + ml)
+	tableMaxWidth := w - (section.X + ml)
 
 	c1w := tableMaxWidth * (tpl.Page.Table.Col1W / 100)
 	c2w := tableMaxWidth * (tpl.Page.Table.Col2W / 100)
@@ -150,15 +157,20 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	normalRowStyle := RowStyle{[]float64{c1w, c2w, c3w, c4w}, tpl.Page.Table.RowHeight, borderBottom, textAlignLeftMid, noFill}
 
 	// write headers
-	pdf.SetTextColor(whiteR, whiteG, whiteB)
-	pdf.SetFillColor(blackR, blackG, blackB)
+	tr, tg, tb := pdf.GetTextColor()
+	fr, fg, fb := pdf.GetFillColor()
+
+	pdf.SetTextColor(tpl.Page.Table.HeaderFontColor[0], tpl.Page.Table.HeaderFontColor[1], tpl.Page.Table.HeaderFontColor[2])
+	pdf.SetFillColor(tpl.Page.Table.HeaderBackgroundColor[0], tpl.Page.Table.HeaderBackgroundColor[1], tpl.Page.Table.HeaderBackgroundColor[2])
 
 	data := tpl.Page.Table.Header
 	// table header console
 	table.SetHeader(data)
-	renderRow(pdf, &headerRowStyle, data)
+	renderRow(pdf, &section, &headerRowStyle, data)
 
-	pdf.SetTextColor(blackR, blackG, blackB)
+	// restore the colors
+	pdf.SetTextColor(tr, tg, tb)
+	pdf.SetFillColor(fr, fg, fb)
 
 	// keep the subtotal
 	ac := accounting.Accounting{Symbol: currencySymbol, Precision: 2}
@@ -185,8 +197,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 		// append data for the console output
 		table.Append(data)
 		// render pdf row
-		renderRow(pdf, &normalRowStyle, data)
-
+		renderRow(pdf, &section, &normalRowStyle, data)
 	}
 	pdf.Ln(tpl.Page.Table.RowHeight)
 	// total and subtotal
@@ -198,14 +209,15 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	// append data for the console output
 	table.Append(data)
 	// render pdf
-	renderRow(pdf, &normalRowStyle, data)
+	pdf.SetX(section.X)
+	renderRow(pdf, &section, &normalRowStyle, data)
 
 	// vat
 	c1v, c2v, c3v, c4v = tpl.Page.Table.LabelTax, "", strconv.FormatFloat(invoice.Settings.VatRate, 'f', 2, 64)+" %", ac.FormatMoney(total-subtotal)
 	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append([]string{c1v, c2v, c3v, c4v})
-	renderRow(pdf, &normalRowStyle, data)
+	renderRow(pdf, &section, &normalRowStyle, data)
 
 	// total
 	pdf.SetFont(tpl.Page.Font.Family, fontStyleBold, tpl.Page.Font.SizeNormal)
@@ -214,7 +226,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append(data)
-	renderRow(pdf, &normalRowStyle, data)
+	renderRow(pdf, &section, &normalRowStyle, data)
 
 	// render console table
 	table.Render()
@@ -240,25 +252,34 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 func renderBlock(pdf *gofpdf.Fpdf, s *Section, page *Page) {
 	// adjust x/y
 	computeCoordinates(s, &page.Margins)
+	// copy the x,y values
+	x, y := s.X, s.Y
 
-	// write title
-	pdf.SetXY(s.X, s.Y)
-	pdf.SetFont(page.Font.Family, fontStyleNormal, page.Font.SizeH2)
-	pdf.MultiCell(boxFullWidth, page.Font.LineHeightH2, s.Title, borderNone, textAlignLeft, noFill)
-
-	// write content
-
-	pdf.SetXY(s.X, s.Y+page.Font.LineHeightH2)
+	pdf.SetXY(x, y)
+	if len(s.Title) > 0 {
+		// write title
+		pdf.SetFont(page.Font.Family, fontStyleNormal, page.Font.SizeH2)
+		pdf.MultiCell(boxFullWidth, page.Font.LineHeightH2, s.Title, borderNone, textAlignLeft, noFill)
+		// update x,y
+		x, y = s.X, s.Y+page.Font.LineHeightH2
+	}
+	// reset the font to normal
 	pdf.SetFont(page.Font.Family, fontStyleNormal, page.Font.SizeNormal)
-	pdf.MultiCell(boxFullWidth, page.Font.LineHeightNormal, s.Content, borderNone, textAlignLeft, noFill)
+
+	if len(s.Content) > 0 {
+		// write content
+		pdf.SetXY(x, y)
+		pdf.MultiCell(boxFullWidth, page.Font.LineHeightNormal, s.Content, borderNone, textAlignLeft, noFill)
+	}
 }
 
-func renderRow(pdf *gofpdf.Fpdf, s *RowStyle, colValues []string) {
+func renderRow(pdf *gofpdf.Fpdf, s *Section, rs *RowStyle, colValues []string) {
 	// there are more columns than data
-	for i, w := range s.ColWidths {
-		pdf.CellFormat(w, s.Height, colValues[i], s.Border, 0, s.TextAlign, s.Fill, 0, "")
+	pdf.SetX(s.X)
+	for i, w := range rs.ColWidths {
+		pdf.CellFormat(w, rs.Height, colValues[i], rs.Border, 0, rs.TextAlign, rs.Fill, 0, "")
 	}
-	pdf.Ln(s.Height)
+	pdf.Ln(rs.Height)
 }
 
 type RowStyle struct {
