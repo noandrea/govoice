@@ -66,21 +66,21 @@ func applyTemplate(s *Section, data interface{}) (err error) {
 	return
 }
 
-func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
-	// T := func(prop string) (val string) {
-	// 	val = tpl.Get(prop).(string)
-	// 	return
-	// }
-	// B := func(prop string) (block Block) {
-	// 	block = Block{Position: Position{X: tpl.Get(prop + ".x").(float64), Y: tpl.Get(prop + ".y").(float64)}}
-	// 	return
-	// }
-	// F := func(prop string) (val float64) {
-	// 	val = tpl.Get(prop).(float64)
-	// 	return
-	// }
+func computeCoordinates(s *Section, margins *Margins) {
+	if s.X <= 0 {
+		s.X = 0
+	}
 
-	// compute layout defaults
+	if s.Y <= 0 {
+		s.Y = 0
+	}
+
+	s.X += margins.Left
+	s.Y += margins.Top
+
+}
+
+func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 
 	// create page
 	pdf := gofpdf.New(tpl.Page.Orientation, "mm", tpl.Page.Size, "")
@@ -95,19 +95,17 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 
 	// add a page to the pdf
 	pdf.AddPage()
-
 	// get page size and margins
 	w, _ := pdf.GetPageSize()
 	ml, _, _, _ := pdf.GetMargins()
 
 	// title
-	spew.Println(tpl.Page.Font)
 	title := utf8(strings.ToUpper(invoice.From.Name))
 	pdf.SetFont(tpl.Page.Font.Family, fontStyleBold, tpl.Page.Font.SizeH1)
 	pdf.CellFormat(boxFullWidth, tpl.Page.Font.LineHeightH1, title, borderBottom, 0, textAlignRightMid, noFill, 0, "")
 	pdf.Ln(defaultLineBreak)
 	pdf.SetFont(tpl.Page.Font.Family, fontStyleNormal, tpl.Page.Font.SizeSmall)
-	pdf.CellFormat(boxFullWidth, tpl.Page.Font.SizeNormal, invoice.From.Email, borderNone, 0, textAlignRightMid, noFill, 0, "")
+	pdf.CellFormat(boxFullWidth, tpl.Page.Font.LineHeightSmall, invoice.From.Email, borderNone, 0, textAlignRightMid, noFill, 0, "")
 
 	pdf.SetFont(tpl.Page.Font.Family, fontStyleNormal, tpl.Page.Font.SizeNormal)
 
@@ -115,22 +113,23 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	// invoice data
 	section = tpl.Sections[sectionInvoice]
 	applyTemplate(&section, invoice.Invoice)
-	renderBlock(pdf, &section, &tpl.Page.Font)
+	renderBlock(pdf, &section, &tpl.Page)
 
 	// write from header
 	section = tpl.Sections[sectionFrom]
 	if err := applyTemplate(&section, invoice.From); err != nil {
 		fmt.Println(err)
 	}
-	renderBlock(pdf, &section, &tpl.Page.Font)
+	renderBlock(pdf, &section, &tpl.Page)
 
 	// write to header
 	section = tpl.Sections[sectionTo]
 	applyTemplate(&section, invoice.To)
-	renderBlock(pdf, &section, &tpl.Page.Font)
+	renderBlock(pdf, &section, &tpl.Page)
 
 	// TABLE itmes
 	section = tpl.Sections[sectionDetails]
+	computeCoordinates(&section, &tpl.Page.Margins)
 	pdf.SetXY(section.X, section.Y)
 	var c1v, c2v, c3v, c4v string // cell values
 
@@ -154,11 +153,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	pdf.SetTextColor(whiteR, whiteG, whiteB)
 	pdf.SetFillColor(blackR, blackG, blackB)
 
-	c1v = "desc"
-	c2v = "quantity"
-	c3v = "rate"
-	c4v = "cost"
-	data := []string{c1v, c2v, c3v, c4v}
+	data := tpl.Page.Table.Header
 	// table header console
 	table.SetHeader(data)
 	renderRow(pdf, &headerRowStyle, data)
@@ -198,7 +193,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	subtotal, total := invoice.GetTotals()
 
 	// subtotal
-	c1v, c2v, c3v, c4v = "subtotal", "", "", ac.FormatMoney(subtotal)
+	c1v, c2v, c3v, c4v = tpl.Page.Table.LabelSubtotal, "", "", ac.FormatMoney(subtotal)
 	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append(data)
@@ -206,7 +201,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	renderRow(pdf, &normalRowStyle, data)
 
 	// vat
-	c1v, c2v, c3v, c4v = "tax", "", strconv.FormatFloat(invoice.Settings.VatRate, 'f', 2, 64)+" %", ac.FormatMoney(total-subtotal)
+	c1v, c2v, c3v, c4v = tpl.Page.Table.LabelTax, "", strconv.FormatFloat(invoice.Settings.VatRate, 'f', 2, 64)+" %", ac.FormatMoney(total-subtotal)
 	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append([]string{c1v, c2v, c3v, c4v})
@@ -215,7 +210,7 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	// total
 	pdf.SetFont(tpl.Page.Font.Family, fontStyleBold, tpl.Page.Font.SizeNormal)
 
-	c1v, c2v, c3v, c4v = "total", "", "", ac.FormatMoney(total)
+	c1v, c2v, c3v, c4v = tpl.Page.Table.LabelTotal, "", "", ac.FormatMoney(total)
 	data = []string{c1v, c2v, c3v, c4v}
 	// append data for the console output
 	table.Append(data)
@@ -227,12 +222,12 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 	// payment details
 	section = tpl.Sections[sectionPayments]
 	applyTemplate(&section, invoice.PaymentDetails)
-	renderBlock(pdf, &section, &tpl.Page.Font)
+	renderBlock(pdf, &section, &tpl.Page)
 
 	// notes
 	section = tpl.Sections[sectionNotes]
 	applyTemplate(&section, invoice.Notes)
-	renderBlock(pdf, &section, &tpl.Page.Font)
+	renderBlock(pdf, &section, &tpl.Page)
 
 	// render pdf
 	err := pdf.OutputFileAndClose(pdfPath)
@@ -242,18 +237,20 @@ func RenderPDF(invoice *Invoice, pdfPath string, tpl *InvoiceTemplate) {
 }
 
 // renderBlock renders a block in the pdf
-func renderBlock(pdf *gofpdf.Fpdf, s *Section, font *Font) {
+func renderBlock(pdf *gofpdf.Fpdf, s *Section, page *Page) {
+	// adjust x/y
+	computeCoordinates(s, &page.Margins)
+
 	// write title
 	pdf.SetXY(s.X, s.Y)
-
-	pdf.SetFont(font.Family, fontStyleNormal, font.SizeH2)
-	pdf.MultiCell(boxFullWidth, font.LineHeightNormal, s.Title, borderNone, textAlignLeft, noFill)
+	pdf.SetFont(page.Font.Family, fontStyleNormal, page.Font.SizeH2)
+	pdf.MultiCell(boxFullWidth, page.Font.LineHeightH2, s.Title, borderNone, textAlignLeft, noFill)
 
 	// write content
 
-	pdf.SetXY(s.X, s.Y+font.SizeH2/4)
-	pdf.SetFont(font.Family, fontStyleNormal, font.SizeNormal)
-	pdf.MultiCell(boxFullWidth, font.LineHeightNormal, s.Content, borderNone, textAlignLeft, noFill)
+	pdf.SetXY(s.X, s.Y+page.Font.LineHeightH2)
+	pdf.SetFont(page.Font.Family, fontStyleNormal, page.Font.SizeNormal)
+	pdf.MultiCell(boxFullWidth, page.Font.LineHeightNormal, s.Content, borderNone, textAlignLeft, noFill)
 }
 
 func renderRow(pdf *gofpdf.Fpdf, s *RowStyle, colValues []string) {
