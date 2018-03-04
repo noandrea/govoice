@@ -15,6 +15,11 @@ const (
 	DefaultTemplateName = "default"
 )
 
+// preview
+const (
+	PreviewFileName = "PREVIEW"
+)
+
 // searcing
 const (
 	FieldNumber   = "Number"

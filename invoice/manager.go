@@ -142,6 +142,37 @@ func (i *Item) FormatQuantity(quantitySymbol string, roundQuantity bool) string 
 	return qt
 }
 
+// PreviewInvoice same as RenderInvoice but for previews
+func PreviewInvoice(templatePath string) (invoiceNumber string, err error) {
+	// check if master exists
+	descriptorPath, exists := config.GetMasterPath()
+	if !exists {
+		// file not exists, search for the encrypted version
+		err = errors.New("master descriptor not found")
+		return
+	}
+	// read the master descriptor
+	invoice, err := readInvoiceDescriptor(descriptorPath)
+	if err != nil {
+		return
+	}
+	// set the return invoice number
+	invoiceNumber = invoice.Invoice.Number
+	// load template
+	template, err := readInvoiceTemplate(templatePath)
+
+	// if Daylitime is enabled retrieve the content
+	if invoice.Dailytime.Enabled {
+		scanItemsFromDaily(&invoice)
+	}
+	// compute paths
+	pdfPath, _ := config.GetInvoicePdfPath(config.PreviewFileName)
+	RenderPDF(&invoice, pdfPath, &template)
+
+	fmt.Println("pdf created at", pdfPath)
+	return
+}
+
 //RenderInvoice render the master descriptor to a pdf file and create the encrypted descriptor of the invoice.
 //The pdf and the descriptor are stored in the workspace folder in the format $INVOICE_NUMBER.pdf / $INVOICE_NUMBER.json.cfb
 func RenderInvoice(password, templatePath string) (invoiceNumber string, err error) {
