@@ -10,8 +10,7 @@ import (
 func TestReadInvoiceDescriptor(t *testing.T) {
 	cwd, _ := os.Getwd()
 	path := path.Join(cwd, "_testresources", "0001.json")
-	var i Invoice
-	err := readInvoiceDescriptor(&path, &i)
+	i, err := readInvoiceDescriptor(path)
 
 	if err != nil {
 		t.Error("expected nil, found", err)
@@ -28,13 +27,13 @@ func TestReadInvoiceDescriptorEncrypted(t *testing.T) {
 	path := path.Join(cwd, "_testresources", "0001.json.cfb")
 	var i Invoice
 	wrongPass := "                     xxxxxxxxxxx"
-	err := readInvoiceDescriptorEncrypted(&path, &i, &wrongPass)
+	i, err := readInvoiceDescriptorEncrypted(path, wrongPass)
 	if err == nil {
 		t.Error("unexpected", nil, "as error")
 	}
 
 	rightPass := "                        12345678"
-	err = readInvoiceDescriptorEncrypted(&path, &i, &rightPass)
+	i, err = readInvoiceDescriptorEncrypted(path, rightPass)
 	if err != nil {
 		t.Error("unexpected", err, "as error")
 	}

@@ -16,13 +16,13 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	gv "gitlab.com/almost_cc/govoice/invoice"
+	"gitlab.com/almost_cc/govoice/config"
 )
-
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -30,7 +30,6 @@ var RootCmd = &cobra.Command{
 	Short: "invoice generation an indexing for devz",
 	Long: `Govoice is a tool to generate pdf invoices from a descriptor file.
 It offers:
-- multilanguage pdf generation
 - encrypted invoice descriptor generator (to be stored on a VCS)
 - indexing and search of invoices
 `,
@@ -55,7 +54,7 @@ func init() {
 	// Cobra supports Persistent Flags, which, if defined here,
 	// will be global for your application.
 
-	// RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.govoice/config.toml)")
+	RootCmd.PersistentFlags().BoolVar(&config.DebugEnabled, "debug", false, "enable debug log")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	// RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -65,15 +64,21 @@ func init() {
 func initConfig() {
 
 	// configuration folder
-	configHome := gv.GetConfigHome()
+	configHome := config.GetConfigHome()
 	// create the config directory if not exists
 	_ = os.Mkdir(configHome, os.FileMode(0770))
-	// create the i18n directory if not exists
-	_ = os.Mkdir(gv.GetI18nHome(), os.FileMode(0770))
 	// search for config file
 	viper.SetConfigName("config")   // name of config file (without extension)
 	viper.AddConfigPath(configHome) // adding home directory as first search path
 	viper.AutomaticEnv()
 	// If a config file is found, read it in.
 	viper.ReadInConfig()
+	if err := viper.ReadInConfig(); err == nil {
+		log.Println("d: Using config file:", viper.ConfigFileUsed())
+		// load configurations (overwrited defautls)
+		viper.Unmarshal(&config.Main)
+		//log.Println("t: config", spew.Sdump(config.Db, config.Authority, config.RestAPI, config.Chats))
+	} else {
+		log.Fatalln("a: configuration file not found", err)
+	}
 }

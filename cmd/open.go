@@ -15,47 +15,34 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
-	gv "gitlab.com/almost_cc/govoice/invoice"
+	"gitlab.com/almost_cc/govoice/config"
 )
 
-// indexCmd represents the index command
-var indexCmd = &cobra.Command{
-	Use:   "index",
-	Short: "(re)generate the searchable index of invoices",
+// openCmd represents the open command
+var openCmd = &cobra.Command{
+	Use:   "open",
+	Short: "Open the invoices folder in the system filesystem browser",
 	Long:  ``,
-	Run:   index,
+	Run:   doOpen,
 }
 
 func init() {
-	RootCmd.AddCommand(indexCmd)
+	RootCmd.AddCommand(openCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// indexCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// openCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// indexCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// openCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 }
 
-func index(cmd *cobra.Command, args []string) {
-
-	// retrieve password
-	password, err := gv.ReadUserPassword("Enter password:")
-	if err != nil {
-		fmt.Println(err)
-	}
-	// create the index
-	count, elapsed, err := gv.RebuildSearchIndex(password)
-	// if index creation is
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("indexed created with", count, "invoices in", elapsed)
+func doOpen(cmd *cobra.Command, args []string) {
+	open.Run(config.Main.Workspace)
 }

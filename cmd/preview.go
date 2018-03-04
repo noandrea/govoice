@@ -1,4 +1,4 @@
-// Copyright © 2017 NAME HERE <EMAIL ADDRESS>
+// Copyright © 2018 NAME HERE <EMAIL ADDRESS>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,33 +23,24 @@ import (
 	govoice "gitlab.com/almost_cc/govoice/invoice"
 )
 
-// renderCmd represents the render command
-var renderCmd = &cobra.Command{
-	Use:   "render",
-	Short: "render the master invoice in the workspace",
-	Long: `
-Render the invoice master in pdf in the workspace directory. It also create
-a encrypted version of the invoice data`,
-	Run: render,
+// previewCmd represents the preview command
+var previewCmd = &cobra.Command{
+	Use:   "preview",
+	Short: "render a preview of the pdf",
+	Long:  `works like render but doesn't asks for passwords and owerwrite existing files`,
+	Run:   preview,
 }
 
 func init() {
-	RootCmd.AddCommand(renderCmd)
+	RootCmd.AddCommand(previewCmd)
 	tp, _ := config.GetTemplatePath(config.DefaultTemplateName)
 	help := fmt.Sprintln("template name or path, defaults to:", tp)
-	renderCmd.Flags().StringVarP(&templatePath, "template", "t", config.DefaultTemplateName, help)
+	renderCmd.Flags().StringVarP(&templatePreviewPath, "te", "x", config.DefaultTemplateName, help)
 }
 
-var templatePath string
+var templatePreviewPath string
 
-func render(cmd *cobra.Command, args []string) {
-	// read the password
-	password, err := govoice.ReadUserPassword("Enter password:")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+func preview(cmd *cobra.Command, args []string) {
 	templatePath, te := config.GetTemplatePath(templatePath)
 	// if template path is a string, load the template from the default folder
 	if !te {
@@ -58,13 +49,13 @@ func render(cmd *cobra.Command, args []string) {
 	}
 
 	// render invoice
-	if invoiceNumber, err := govoice.RenderInvoice(password, templatePath); err == govoice.InvoiceDescriptorExists {
+	if invoiceNumber, err := govoice.PreviewInvoice(templatePath); err == govoice.InvoiceDescriptorExists {
 		fmt.Println("ok, nothing to do")
 	} else if err != nil {
 		fmt.Println("error rendering invoice:", err)
 	} else {
-		path, _ := config.GetInvoicePdfPath(invoiceNumber)
-		fmt.Println("rendered invoice number", invoiceNumber, "at", path)
+		path, _ := config.GetInvoicePdfPath(config.PreviewFileName)
+		fmt.Println("preview invoice number", invoiceNumber, "at", path)
 		open.Run(path)
 	}
 }

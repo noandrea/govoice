@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"gitlab.com/almost_cc/govoice/config"
 	gv "gitlab.com/almost_cc/govoice/invoice"
 )
 
@@ -54,13 +54,10 @@ func restore(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	var c gv.Config
-	viper.Unmarshal(&c)
-
 	invoiceNumber := args[0]
 
 	// if the invoice does not exists stop it
-	_, e := c.GetInvoiceJsonPath(invoiceNumber)
+	_, e := config.GetInvoiceJsonPath(invoiceNumber)
 	if !e {
 		fmt.Println("invoice ", invoiceNumber, "does not exist in workspace")
 		return
@@ -73,7 +70,7 @@ func restore(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = gv.RestoreInvoice(&c, invoiceNumber, password)
+	err = gv.RestoreInvoice(invoiceNumber, password)
 	if err != nil {
 		fmt.Println(err)
 	}
