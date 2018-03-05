@@ -1,9 +1,7 @@
 package invoice
 
 import (
-	"bytes"
 	"os"
-	"text/template"
 
 	"gitlab.com/almost_cc/govoice/config"
 )
@@ -67,21 +65,6 @@ type Section struct {
 	Content  string  `toml:"-"`
 }
 
-// render a section template with the data
-func (s Section) applyTemplate(data interface{}) (content string) {
-	tmpl, err := template.New("__").Parse(s.Template)
-	if err != nil {
-		panic(err)
-	}
-	var rendered bytes.Buffer
-	err = tmpl.Execute(&rendered, data)
-	if err != nil {
-		panic(err)
-	}
-	content = rendered.String()
-	return
-}
-
 // Setup setup the applications,
 // create the workspace and the master invoice
 // create the configuration with default values
@@ -94,15 +77,7 @@ func Setup(workspace string) (string, string, error) {
 		MasterDescriptor:  "_master",
 		DateInputFormat:   "%d.%m.%y",
 		SearchResultLimit: 50,
-		// Layout: Layout{
-		// 	Style:    Style{Margins{0, 20, 20, 10}, "helvetica", 8, 14, 16, 6, 3.7, 6, 4, 3, 60, 13, 13, 13, 8, 6},
-		// 	Items:    Block{Coords{-1, 100}},
-		// 	From:     Block{Coords{-1, 28}},
-		// 	To:       Block{Coords{-1, 60}},
-		// 	Invoice:  Block{Coords{140, 28}},
-		// 	Payments: Block{Coords{-1, 210}},
-		// 	Notes:    Block{Coords{-1, 240}},
-		// },
+		DefaultInvoiceNet: 30,
 	}
 	// first create directories
 	if err := os.MkdirAll(config.GetConfigHome(), 0770); err != nil {
@@ -120,26 +95,6 @@ func Setup(workspace string) (string, string, error) {
 		return configPath, masterPath, err
 	}
 
-	// write internationalization file
-
-	// en := Translation{
-	// 	From:               I18NOther{"FROM"},
-	// 	Sender:             I18NOther{"{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"},
-	// 	To:                 I18NOther{"TO"},
-	// 	Recipient:          I18NOther{"{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\nTax Number: {{.TaxId}}\nVAT: {{.VatNumber}}"},
-	// 	Invoice:            I18NOther{"INVOICE"},
-	// 	InvoiceData:        I18NOther{"N. {{.Number}}\nDate: {{.Date}}\nDue:{{.Due}}"},
-	// 	PaymentDetails:     I18NOther{"PAYMENTS DETAILS"},
-	// 	PaymentDetailsData: I18NOther{"{{.AccountHolder}}\n\nBank: {{.Bank}}\nIBAN: {{.Iban}}\nBIC: {{.Bic}}"},
-	// 	Notes:              I18NOther{"NOTES"},
-	// 	Desc:               I18NOther{"Description"},
-	// 	Quantity:           I18NOther{"Quantity"},
-	// 	Rate:               I18NOther{"Rate"},
-	// 	Cost:               I18NOther{"Cost"},
-	// 	Subtotal:           I18NOther{"Subtotal"},
-	// 	Total:              I18NOther{"Total"},
-	// 	Tax:                I18NOther{"VAT"},
-	// }
 	enPath, exists := config.GetTemplatePath(config.DefaultTemplateName)
 	//TODO not good
 	err = writeTomlToFile(enPath, "")
@@ -167,11 +122,97 @@ func Setup(workspace string) (string, string, error) {
 		if err != nil {
 			return configPath, masterPath, err
 		}
+	}
 
+	// write default templates
+	tpl, tple := config.GetTemplatePath(config.DefaultTemplateName)
+	if !tple {
+		writeTomlToFile(tpl, defaultTemplate())
 	}
 
 	// create bleve index
 	err = CreateSearchIndex()
 
 	return configPath, masterPath, err
+}
+
+func defaultTemplate() (tpl InvoiceTemplate) {
+	tpl = InvoiceTemplate{
+		Page: Page{
+			BackgroundColor: []int{255, 255, 255},
+			FontColor:       []int{0, 0, 0},
+			Orientation:     "P",
+			Size:            "A4",
+			Font: Font{
+				Family:           "helvetica",
+				LineHeightH1:     8.0,
+				LineHeightH2:     7.0,
+				LineHeightNormal: 3.7,
+				LineHeightSmall:  3.0,
+				SizeNormal:       8.0,
+				SizeH1:           14.0,
+				SizeH2:           16.0,
+				SizeSmall:        6.0,
+			},
+			Margins: Margins{
+				Bottom: 0,
+				Left:   20,
+				Right:  20,
+				Top:    10,
+			},
+
+			Table: Table{
+				Col1W:                 60.0,
+				Col2W:                 13.0,
+				Col3W:                 13.0,
+				Col4W:                 13.0,
+				HeadHeight:            8.0,
+				RowHeight:             6.0,
+				HeaderBackgroundColor: []int{0, 0, 0},
+				HeaderFontColor:       []int{255, 255, 255},
+				Header:                []string{"Description", "Quantity", "Rate", "Cost"},
+				LabelTotal:            "total",
+				LabelSubtotal:         "sbutotal",
+				LabelTax:              "tax",
+			},
+		},
+	}
+
+	tpl.Sections = make(map[string]Section)
+	tpl.Sections["from"] = Section{
+		Title:    "FROM",
+		Template: `{{.Name}}\n{{.Address}}\n\t\t{{.AreaCode}}, {{.City}}\n\t\t{{.Country}}\n\t\t{{if .TaxId }}Tax Number: {{.TaxId}} {{end}}\n\t\t{{if .VatNumber }}VAT: {{.VatNumber}} {{end}}\n\t\t`,
+		X:        -1.0,
+		Y:        28.0,
+	}
+
+	tpl.Sections["invoice"] = Section{
+		Title:    "INVOICE",
+		Template: "N.      {{.Number}}\nDate: {{.Date}}\nDue:  {{.Due}}\n\t\t",
+		X:        140.0,
+		Y:        28.0,
+	}
+
+	tpl.Sections["notes"] = Section{
+		Title:    "NOTES",
+		Template: "{{ range . }}{{ . }}\n{{ end }}",
+		X:        -1.0,
+		Y:        240.0,
+	}
+
+	tpl.Sections["payments"] = Section{
+		Title:    "PAYMENTS DETAILS",
+		Template: "{{.AccountHolder}}\n\nBank: {{.Bank}}\nIBAN: {{.Iban}}\nBIC:  {{.Bic}}",
+		X:        -1.0,
+		Y:        210.0,
+	}
+
+	tpl.Sections["to"] = Section{
+		Title:    "TO",
+		Template: "{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\n{{if .TaxId }}Tax Number: {{.TaxId}} {{end}}\n{{if .VatNumber }}VAT: {{.VatNumber}} {{end}}\n\t\t",
+		X:        -1.0,
+		Y:        65.0,
+	}
+
+	return
 }

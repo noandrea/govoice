@@ -265,12 +265,14 @@ func renderBlock(pdf *gofpdf.Fpdf, s *Section, page *Page) {
 	computeCoordinates(s, &page.Margins)
 	// copy the x,y values
 	x, y := s.X, s.Y
-
+	// this is necessary to handle unicode string
+	tr := pdf.UnicodeTranslatorFromDescriptor("")
+	//
 	pdf.SetXY(x, y)
 	if len(s.Title) > 0 {
 		// write title
 		pdf.SetFont(page.Font.Family, fontStyleNormal, page.Font.SizeH2)
-		pdf.MultiCell(boxFullWidth, page.Font.LineHeightH2, s.Title, borderNone, textAlignLeft, noFill)
+		pdf.MultiCell(boxFullWidth, page.Font.LineHeightH2, tr(s.Title), borderNone, textAlignLeft, noFill)
 		// update x,y
 		x, y = s.X, s.Y+page.Font.LineHeightH2
 	}
@@ -280,7 +282,7 @@ func renderBlock(pdf *gofpdf.Fpdf, s *Section, page *Page) {
 	if len(s.Content) > 0 {
 		// write content
 		pdf.SetXY(x, y)
-		pdf.MultiCell(boxFullWidth, page.Font.LineHeightNormal, s.Content, borderNone, textAlignLeft, noFill)
+		pdf.MultiCell(boxFullWidth, page.Font.LineHeightNormal, tr(s.Content), borderNone, textAlignLeft, noFill)
 	}
 }
 

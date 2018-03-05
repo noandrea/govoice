@@ -54,13 +54,16 @@ func GetTemplatePath(name string) (templatePath string, templateExists bool) {
 	return getPath(GetTemplatesHome(), name, ExtToml)
 }
 
+// MainConfig the main govoice configuration
 type MainConfig struct {
 	Workspace         string `toml:"workspace"`
 	SearchResultLimit int    `toml:"searchResultLimit"`
 	MasterDescriptor  string `toml:"masterDescriptor"`
 	DateInputFormat   string `toml:"dateInputFormat"`
+	DefaultInvoiceNet int    `toml:"defaultInvoiceNet"`
 }
 
+//GetMasterPath returns the path to the master invoice
 func GetMasterPath() (masterFilePath string, masterFileExists bool) {
 	return getPath(Main.Workspace, Main.MasterDescriptor, ExtJson)
 }
@@ -85,6 +88,7 @@ func getPath(basePath, fileName, ext string) (filePath string, fileExists bool) 
 	return
 }
 
+// FileExists utility to check if a file exists
 func FileExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
