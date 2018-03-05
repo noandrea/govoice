@@ -287,6 +287,10 @@ func renderBlock(pdf *gofpdf.Fpdf, s *Section, page *Page) {
 }
 
 func renderRow(pdf *gofpdf.Fpdf, s *Section, rs *RowStyle, colValues []string) {
+	if len(rs.ColWidths) != len(colValues) {
+		// TODO: maybe do something about it
+		return
+	}
 	// there are more columns than data
 	pdf.SetX(s.X)
 	for i, w := range rs.ColWidths {

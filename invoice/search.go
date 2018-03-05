@@ -119,12 +119,12 @@ func RebuildSearchIndex(password string) (int, time.Duration, error) {
 	b := index.NewBatch()
 
 	// scan the descriptor files
-	files, _ := ioutil.ReadDir(config.Main.Workspace)
+	files, _ := ioutil.ReadDir(config.Govoice.Workspace)
 
 	counter = 0
 	for _, f := range files {
 		if path.Ext(f.Name()) == config.ExtCfb {
-			descriptorPath := path.Join(config.Main.Workspace, f.Name())
+			descriptorPath := path.Join(config.Govoice.Workspace, f.Name())
 			if invoice, err := readInvoiceDescriptorEncrypted(descriptorPath, password); err == nil {
 				// build the IndexEntry
 				amount, _ := invoice.GetTotals()

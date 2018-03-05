@@ -66,7 +66,7 @@ func readInvoiceDescriptorEncrypted(path, password string) (i Invoice, err error
 func writeInvoiceDescriptor(i *Invoice) {
 	content, err := json.MarshalIndent(*i, "", "  ")
 	if err == nil {
-		writeFile(fmt.Sprintf("%s/%s.json", config.Main.Workspace, i.Invoice.Number), content)
+		writeFile(fmt.Sprintf("%s/%s.json", config.Govoice.Workspace, i.Invoice.Number), content)
 	}
 }
 

@@ -69,10 +69,9 @@ type Section struct {
 // create the workspace and the master invoice
 // create the configuration with default values
 // returns the configration file path and the master template path
-func Setup(workspace string) (string, string, error) {
-	var configPath, masterPath string
+func Setup(workspace string) (configPath string, masterPath string, err error) {
 	// create configuration with defaults
-	c := config.MainConfig{
+	config.Govoice = config.MainConfig{
 		Workspace:         workspace,
 		MasterDescriptor:  "_master",
 		DateInputFormat:   "%d.%m.%y",
@@ -80,60 +79,57 @@ func Setup(workspace string) (string, string, error) {
 		DefaultInvoiceNet: 30,
 	}
 	// first create directories
-	if err := os.MkdirAll(config.GetConfigHome(), 0770); err != nil {
-		return configPath, masterPath, err
+	if err = os.MkdirAll(config.GetConfigHome(), 0770); err != nil {
+		return
 	}
 
-	if err := os.MkdirAll(config.GetTemplatesHome(), 0770); err != nil {
-		return configPath, masterPath, err
+	if err = os.MkdirAll(config.GetTemplatesHome(), 0770); err != nil {
+		return
 	}
 
 	// write default configuration file
 	configPath = config.GetConfigFilePath()
-	err := writeTomlToFile(configPath, c)
+	err = writeTomlToFile(configPath, config.Govoice)
 	if err != nil {
-		return configPath, masterPath, err
+		return
 	}
 
-	enPath, exists := config.GetTemplatePath(config.DefaultTemplateName)
-	//TODO not good
-	err = writeTomlToFile(enPath, "")
-	if err != nil {
-		return configPath, masterPath, err
+	var exists bool
+	// write default template
+	if tplPath, exists := config.GetTemplatePath(config.DefaultTemplateName); !exists {
+		err = writeTomlToFile(tplPath, defaultTemplate())
+		if err != nil {
+			return
+		}
 	}
-
 	// write master.json
 	// create the config directory if not exists
 	_ = os.Mkdir(workspace, os.FileMode(0770))
-	masterPath, exists = config.GetMasterPath()
-	// don't overwrite the master if already exists
-	if !exists {
-		master := Invoice{
-			From:           Recipient{"My Name", "My Address", "My City", "My Post Code", "My Country", "My Tax ID", "My VAT Number", "My Email"},
-			To:             Recipient{"Customer Name", "Customer Address", "Customer City", "Customer Post Code", "Customer Country", "Customre Tax ID", "Customer VAT number", "Customer Email"},
-			PaymentDetails: BankCoordinates{"My Name", "My Bank Name", "My IBAN", "My BIC/SWIFT"},
-			Invoice:        InvoiceData{"0000000", "23.01.2017", "23.02.2017"},
-			Settings:       InvoiceSettings{45, "", 19, "€", "en", "", false},
-			Dailytime:      Daily{Enabled: false},
-			Items:          &[]Item{Item{"item 1 description", 10, 0, ""}, Item{"item 2 description", 5, 60, ""}},
-			Notes:          []string{"first note", "second note"},
-		}
-		err = writeJsonToFile(masterPath, master)
+	if masterPath, exists = config.GetMasterPath(); !exists {
+		err = writeJsonToFile(masterPath, masterInvoice())
 		if err != nil {
-			return configPath, masterPath, err
+			return
 		}
-	}
-
-	// write default templates
-	tpl, tple := config.GetTemplatePath(config.DefaultTemplateName)
-	if !tple {
-		writeTomlToFile(tpl, defaultTemplate())
 	}
 
 	// create bleve index
 	err = CreateSearchIndex()
 
-	return configPath, masterPath, err
+	return
+}
+
+func masterInvoice() (master Invoice) {
+	master = Invoice{
+		From:           Recipient{"My Name", "My Address", "My City", "My Post Code", "My Country", "My Tax ID", "My VAT Number", "My Email"},
+		To:             Recipient{"Customer Name", "Customer Address", "Customer City", "Customer Post Code", "Customer Country", "Customre Tax ID", "Customer VAT number", "Customer Email"},
+		PaymentDetails: BankCoordinates{"My Name", "My Bank Name", "My IBAN", "My BIC/SWIFT"},
+		Invoice:        InvoiceData{"0000000", "23.01.2017", "23.02.2017"},
+		Settings:       InvoiceSettings{45, "", 19, "€", "en", "", false},
+		Dailytime:      Daily{Enabled: false},
+		Items:          &[]Item{Item{"item 1 description", 10, 0, ""}, Item{"item 2 description", 5, 60, ""}},
+		Notes:          []string{"first note", "second note"},
+	}
+	return
 }
 
 func defaultTemplate() (tpl InvoiceTemplate) {

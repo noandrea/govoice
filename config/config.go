@@ -65,18 +65,18 @@ type MainConfig struct {
 
 //GetMasterPath returns the path to the master invoice
 func GetMasterPath() (masterFilePath string, masterFileExists bool) {
-	return getPath(Main.Workspace, Main.MasterDescriptor, ExtJson)
+	return getPath(Govoice.Workspace, Govoice.MasterDescriptor, ExtJson)
 }
 
 // GetInvoiceJsonPath get the path of the encrypted version of an invoice in the workspace.
 // returns the path of the invoice, and a boolean if the invoice already exists (true) or not (false)
 func GetInvoiceJsonPath(name string) (string, bool) {
-	return getPath(Main.Workspace, name, ExtJsonEncripted)
+	return getPath(Govoice.Workspace, name, ExtJsonEncripted)
 }
 
 // GetInvoicePdfPath get the pdf path
 func GetInvoicePdfPath(name string) (string, bool) {
-	return getPath(Main.Workspace, name, ExtPdf)
+	return getPath(Govoice.Workspace, name, ExtPdf)
 }
 
 //getPath build a path composed of baseFolder, fileName, extension
@@ -96,8 +96,8 @@ func FileExists(path string) bool {
 	return true
 }
 
-// Main main configuration loaded at startup
-var Main MainConfig
+// Govoice main configuration loaded at startup
+var Govoice MainConfig
 
 // DebugEnabled if debugging is enbled or not
 var DebugEnabled = false

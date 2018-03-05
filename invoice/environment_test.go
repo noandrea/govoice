@@ -32,7 +32,7 @@ func TestWorkspacePaths(t *testing.T) {
 	defer os.RemoveAll(tmpHome)
 	t.Log("home is ", os.Getenv("HOME"))
 
-	config.Main = config.MainConfig{
+	config.Govoice = config.MainConfig{
 		Workspace:         tmpWorkspace,
 		MasterDescriptor:  "_master",
 		SearchResultLimit: 10,
@@ -63,35 +63,34 @@ func TestRenderPDF(t *testing.T) {
 	defer os.RemoveAll(tmpHome)
 	t.Log("home is ", os.Getenv("HOME"))
 
-	config.Main = config.MainConfig{
+	config.Govoice = config.MainConfig{
 		Workspace:         tmpWorkspace,
 		MasterDescriptor:  "_master",
 		SearchResultLimit: 10,
 	}
 	// pdf
-	filePath, exists := config.GetInvoicePdfPath("0000")
+	pdfPath, exists := config.GetInvoicePdfPath("0000")
 	if exists == true {
-		t.Error("path ", filePath, "should not exists") // dumb test
+		t.Error("path ", pdfPath, "should not exists") // dumb test
 	}
 
-	if fp := path.Join(tmpWorkspace, "0000.pdf"); filePath != fp {
-		t.Error("Expected\n", fp, "\nfound\n", filePath)
+	if fp := path.Join(tmpWorkspace, "0000.pdf"); pdfPath != fp {
+		t.Error("Expected\n", fp, "\nfound\n", pdfPath)
 	}
 	// json
-	filePath, exists = config.GetInvoiceJsonPath("0000")
+	jsonPath, exists := config.GetInvoiceJsonPath("0000")
 	if exists == true {
-		t.Error("path ", filePath, "should not exists") // dumb test
+		t.Error("path ", jsonPath, "should not exists") // dumb test
 	}
 
-	if fp := path.Join(tmpWorkspace, "0000.json.cfb"); filePath != fp {
-		t.Error("Expected\n", fp, "\nfound\n", filePath)
+	if fp := path.Join(tmpWorkspace, "0000.json.cfb"); jsonPath != fp {
+		t.Error("Expected\n", fp, "\nfound\n", jsonPath)
 	}
 
-	it := defaultTemplate()
+	// it := defaultTemplate()
 
-	invoice := Invoice{}
-
-	RenderPDF(&invoice, "", &it)
+	// invoice := Invoice{}
+	//RenderPDF(&invoice, filePath, &it)
 }
 
 func TestSetup(t *testing.T) {
@@ -125,7 +124,7 @@ func TestLoadTemplate(t *testing.T) {
 	th, tmpWorkspace := makeTmpHome()
 	defer os.RemoveAll(th)
 	t.Log("home is ", os.Getenv("HOME"))
-	config.Main = config.MainConfig{
+	config.Govoice = config.MainConfig{
 		Workspace:         tmpWorkspace,
 		MasterDescriptor:  "_master",
 		SearchResultLimit: 10,

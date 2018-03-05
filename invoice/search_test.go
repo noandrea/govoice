@@ -128,11 +128,6 @@ func TestSearchInvoice(t *testing.T) {
 
 	t.Log(cfp, mp)
 
-	config.Main = config.MainConfig{
-		Workspace:        tmpWorkspace,
-		MasterDescriptor: "_master",
-	}
-
 	pass := "abcd^^D[é123"
 	pass = strings.Repeat(" ", 32-len(pass)) + pass
 	// this creates the search index and add the invoices to the index
@@ -143,7 +138,8 @@ func TestSearchInvoice(t *testing.T) {
 		}
 		writeInvoiceDescriptorEncrypted(&i, p, pass)
 		RestoreInvoice(i.Invoice.Number, pass)
-		RenderInvoice(pass, "default")
+		t, _ := config.GetTemplatePath(config.DefaultTemplateName)
+		RenderInvoice(pass, t)
 	}
 
 	runQueries(t)
@@ -162,11 +158,6 @@ func TestRebuildSearchIndex(t *testing.T) {
 
 	t.Log(cfp, mp)
 
-	config.Main = config.MainConfig{
-		Workspace:        tmpWorkspace,
-		MasterDescriptor: "_master",
-	}
-
 	pass := "abcd^^D[é123"
 	pass = strings.Repeat(" ", 32-len(pass)) + pass
 	// this creates the search index and add the invoices to the index
@@ -174,7 +165,8 @@ func TestRebuildSearchIndex(t *testing.T) {
 		p, _ := config.GetInvoiceJsonPath(i.Invoice.Number)
 		writeInvoiceDescriptorEncrypted(&i, p, pass)
 		RestoreInvoice(i.Invoice.Number, pass)
-		RenderInvoice(pass, "default")
+		t, _ := config.GetTemplatePath(config.DefaultTemplateName)
+		RenderInvoice(pass, t)
 	}
 
 	// this recreates the seaarch index should have the same results as above

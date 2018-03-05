@@ -227,7 +227,7 @@ func RenderInvoice(password, templatePath string) (invoiceNumber string, err err
 	invoice.DisableExtensions()
 	// copy the date format if using the global one
 	if invoice.Settings.DateInputFormat == "" {
-		invoice.Settings.DateInputFormat = config.Main.DateInputFormat
+		invoice.Settings.DateInputFormat = config.Govoice.DateInputFormat
 	}
 
 	writeInvoiceDescriptorEncrypted(&invoice, descrPath, password)
