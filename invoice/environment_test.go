@@ -87,7 +87,7 @@ func TestRenderPDF(t *testing.T) {
 		t.Error("Expected\n", fp, "\nfound\n", filePath)
 	}
 
-	it := mockTemplate()
+	it := defaultTemplate()
 
 	invoice := Invoice{}
 
@@ -131,7 +131,7 @@ func TestLoadTemplate(t *testing.T) {
 		SearchResultLimit: 10,
 	}
 	// load a mock template
-	tpl := mockTemplate()
+	tpl := defaultTemplate()
 	// get the path to the thing
 	tp, te := config.GetTemplatePath(config.DefaultTemplateName)
 	t.Log("template is ", tp)
@@ -160,107 +160,4 @@ func TestLoadTemplate(t *testing.T) {
 		t.Error("templates are different")
 	}
 
-}
-
-func mockTemplate() InvoiceTemplate {
-	it := InvoiceTemplate{
-		Page: Page{
-			Orientation:     "P",
-			Size:            "A4",
-			BackgroundColor: []int{255, 255, 255},
-			FontColor:       []int{0, 0, 0},
-			Font: Font{
-				Family:           "helvetica",
-				SizeH1:           16,
-				SizeH2:           14,
-				SizeNormal:       12,
-				SizeSmall:        10,
-				LineHeightH1:     3.7,
-				LineHeightH2:     3.2,
-				LineHeightNormal: 3,
-				LineHeightSmall:  2.4,
-			},
-			Margins: Margins{
-				Bottom: 0,
-				Left:   20,
-				Right:  20,
-				Top:    10,
-			},
-			Table: Table{
-				Col1W:      60,
-				Col2W:      10,
-				Col3W:      10,
-				Col4W:      20,
-				HeadHeight: 10,
-				RowHeight:  5,
-			},
-		},
-		Sections: make(map[string]Section),
-	}
-
-	it.Sections["from"] = Section{
-		X:     -1,
-		Y:     28,
-		Title: "FROM",
-		Template: `
-		{{.Name}}
-		{{.Address}}
-		{{.AreaCode}}, {{.City}}
-		{{.Country}}
-		{{if .TaxId }}Tax Number: {{.TaxId}} {{end}}
-		{{if .VatNumber }}VAT: {{.VatNumber}} {{end}}
-		`,
-	}
-
-	it.Sections["to"] = Section{
-		X:     -1,
-		Y:     60,
-		Title: "TO",
-		Template: `
-		{{.Name}}
-{{.Address}}
-{{.AreaCode}}, {{.City}}
-{{.Country}}
-{{if .TaxId }}Tax Number: {{.TaxId}} {{end}}
-{{if .VatNumber }}VAT: {{.VatNumber}} {{end}}
-		`,
-	}
-
-	it.Sections["invoice"] = Section{
-		X:     140,
-		Y:     28,
-		Title: "INVOICE",
-		Template: `
-N.    {{.Number}}
-Date: {{.Date}}
-Due:  {{.Due}}
-		`,
-	}
-
-	it.Sections["details"] = Section{
-		X:        -1,
-		Y:        160,
-		Title:    "",
-		Template: ``,
-	}
-
-	it.Sections["payments"] = Section{
-		X:     -1,
-		Y:     210,
-		Title: "PAYMENTS DETAILS",
-		Template: `{{.AccountHolder}}
-
-Bank: {{.Bank}}
-IBAN: {{.Iban}}
-BIC:  {{.Bic}}`,
-	}
-
-	it.Sections["notes"] = Section{
-		X:        -1,
-		Y:        240,
-		Title:    "NOTES",
-		Template: `{{.}}`,
-	}
-
-	return it
 }

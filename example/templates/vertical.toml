@@ -1,0 +1,70 @@
+[page]
+  background_color = [255,255,255]
+  font_color = [0,0,0]
+  orientation = "P"
+  size = "A4"
+
+  [page.font]
+    family = "helvetica"
+    line_height_h1 = 8.0
+    line_height_h2 = 7.0
+    line_height_normal = 3.7
+    line_height_small = 3.0
+    sizeNormal = 8.0
+    size_h1 = 14.0
+    size_h2 = 16.0
+    size_small = 6.0
+
+  [page.margins]
+    bottom = 0.0
+    left = 20.0
+    right = 20.0
+    top = 10.0
+
+  [page.table]
+    col1w = 60.0
+    col2w = 13.0
+    col3w = 13.0
+    col4w = 13.0
+    head_height = 8.0
+    row_height = 6.0
+		header = ["Description","Quantity", "Rate", "Cost"]
+		label_total = "total"
+		label_subtotal = "sbutotal"
+		label_tax = "tax"
+
+[sections]
+
+  [sections.details]
+		# to customize details field edit the page.table element
+		title = "ITEMS"
+    x = 60.0
+    y = 28.0
+
+
+  [sections.from]
+    title = "FROM"
+    tpl = "{{.Name}}\n{{.Address}}\n\t\t{{.AreaCode}}, {{.City}}\n\t\t{{.Country}}\n\t\t{{if .TaxId }}Tax Number: {{.TaxId}} {{end}}\n\t\t{{if .VatNumber }}VAT: {{.VatNumber}} {{end}}\n\t\t"
+    x = -1.0
+    y = 58.0
+
+  [sections.invoice]
+    title = "INVOICE"
+    tpl = "N.      {{.Number}}\nDate: {{.Date}}\nDue:  {{.Due}}\n\t\t"
+    y = 28.0
+
+  [sections.notes]
+    title = "NOTES"
+    tpl = "{{ range . }}{{ . }}\n{{ end }}"
+		x = 60.0
+    y = 140.0
+
+  [sections.payments]
+    title = "PAYMENTS DETAILS"
+    tpl = "{{.AccountHolder}}\n\nBank: {{.Bank}}\nIBAN: {{.Iban}}\nBIC:  {{.Bic}}"
+    y = 140.0
+
+  [sections.to]
+    title = "TO"
+    tpl = "{{.Name}}\n{{.Address}}\n{{.AreaCode}}, {{.City}}\n{{.Country}}\n{{if .TaxId }}Tax Number: {{.TaxId}} {{end}}\n{{if .VatNumber }}VAT: {{.VatNumber}} {{end}}\n\t\t"
+    y = 98.0

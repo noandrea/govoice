@@ -19,6 +19,7 @@ import (
 
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gitlab.com/almost_cc/govoice/config"
 	govoice "gitlab.com/almost_cc/govoice/invoice"
 )
@@ -35,19 +36,19 @@ func init() {
 	RootCmd.AddCommand(previewCmd)
 	tp, _ := config.GetTemplatePath(config.DefaultTemplateName)
 	help := fmt.Sprintln("template name or path, defaults to:", tp)
-	renderCmd.Flags().StringVarP(&templatePreviewPath, "te", "x", config.DefaultTemplateName, help)
+	previewCmd.PersistentFlags().StringVarP(&config.TemplateName, fname, "t", config.DefaultTemplateName, help)
+	viper.BindPFlag(fname, previewCmd.PersistentFlags().Lookup(fname))
 }
 
-var templatePreviewPath string
-
 func preview(cmd *cobra.Command, args []string) {
-	templatePath, te := config.GetTemplatePath(templatePath)
+
+	templatePath, te := config.GetTemplatePath(config.TemplateName)
 	// if template path is a string, load the template from the default folder
 	if !te {
 		fmt.Println("template file", templatePath, "does not exists")
 		return
 	}
-
+	fmt.Println("template is ", templatePath)
 	// render invoice
 	if invoiceNumber, err := govoice.PreviewInvoice(templatePath); err == govoice.InvoiceDescriptorExists {
 		fmt.Println("ok, nothing to do")

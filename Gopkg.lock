@@ -96,7 +96,8 @@
 [[projects]]
   name = "github.com/spf13/afero"
   packages = [".","mem"]
-  revision = "9be650865eab0c12963d8753212f4f9c66cdcf12"
+  revision = "bb8f1927f2a9d3ab41c9340aa034f6b803f4359c"
+  version = "v1.0.2"
 
 [[projects]]
   name = "github.com/spf13/cast"
@@ -107,22 +108,26 @@
 [[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "3d7bff8a321b0a0f88b115558bb7e21bec9124ab"
+  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
+  version = "v0.0.1"
 
 [[projects]]
+  branch = "master"
   name = "github.com/spf13/jwalterweatherman"
   packages = ["."]
-  revision = "fa7ca7e836cf3a8bb4ebf799f472c12d7e903d66"
+  revision = "7c0cea34c8ece3fbeb2b27ab9b59511d360fb394"
 
 [[projects]]
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "f1d95a35e132e8a1868023a08932b14f0b8b8fcb"
+  revision = "e57e3eeb33f795204c1ca35f56c44f83227c6e66"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "0967fc9aceab2ce9da34061253ac10fb99bba5b2"
+  revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"

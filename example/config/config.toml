@@ -1,0 +1,5 @@
+dateInputFormat = "%d/%m/%y"
+masterDescriptor = "_master"
+searchResultLimit = 50
+workspace = "~/Documents/invoices"
+defaultInvoiceNet = 30
